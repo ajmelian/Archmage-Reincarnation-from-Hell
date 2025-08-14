@@ -336,6 +336,27 @@
     </div>
   </div>
 
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6"><?php echo $this->lang->line('last_report'); ?></h2>
+        <?php 
+          $rep = $this->db->order_by('id','DESC')->get_where('realm_reports', ['realm_id'=>$realm['id']])->row_array();
+          if ($rep): ?>
+          <pre class="small mb-0"><?php echo html_escape($rep['report']); ?></pre>
+        <?php else: ?>
+          <div class="text-muted"><?php echo $this->lang->line('none'); ?></div>
+        <?php endif; ?>
+        <div class="mt-2">
+          <a class="btn btn-sm btn-outline-secondary" href="<?php echo site_url('alliances'); ?>"><?php echo $this->lang->line('alliances'); ?></a>
+          <a class="btn btn-sm btn-outline-secondary" href="<?php echo site_url('messages/inbox'); ?>"><?php echo $this->lang->line('messages'); ?></a>
+          <a class="btn btn-sm btn-outline-secondary" href="<?php echo site_url('leaderboard'); ?>"><?php echo $this->lang->line('leaderboard'); ?></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <div class="mt-3" id="orderMsg" class="small"></div>
 
 <script>

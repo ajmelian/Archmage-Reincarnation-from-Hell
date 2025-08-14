@@ -1,11 +1,10 @@
-# v0.4.0 — Héroes, Ítems y Admin
+# v0.5.0 — Ticks + Alianzas + Mensajes + Ranking + Reportes
 
 ## Añadido
-- Sistema de héroes y equipamiento.
-- Panel admin para definiciones y logs.
+- Ticks con programación (cron).
+- Alianzas y mensajería interna.
+- Leaderboard con caché por tick.
+- Reportes de turno por reino.
 
 ## Migraciones
-- 004 (heroes/items/inventory, users.role).
-
-## Notas
-- Alice promovida a admin con `seed items`.
+- 005 (varias tablas de sistema).

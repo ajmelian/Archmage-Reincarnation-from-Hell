@@ -20,10 +20,12 @@ class Turn extends CI_Controller {
         // 1) Producción para todos los reinos
         $realms = $this->db->get('realms')->result_array();
         foreach ($realms as $realm) {
+            $reportLines = [];
             $state = $this->Realm_model->loadState($realm);
 
             // Producción base por edificios
             EngineExt::produce($state, $buildingDefs);
+            $reportLines[] = 'Production applied';
 
             // Bonos de héroes/objetos a recursos
             $realmHeroes = $this->Realmhero_model->forRealm((int)$realm['id']);
@@ -69,6 +71,7 @@ class Turn extends CI_Controller {
                     $amount = max(0, (int)($payload['amount'] ?? 0));
                     $state['resources']['land'] = (int)$state['resources']['land'] + $amount; // 1:1 simple
                     $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                 }
             }
 
@@ -79,6 +82,7 @@ class Turn extends CI_Controller {
                     $techId = (string)($payload['techId'] ?? '');
                     $log = EngineExt::research($state, $researchDefs, $techId);
                     $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                 }
             }
 
@@ -96,6 +100,7 @@ class Turn extends CI_Controller {
                             $stats = json_decode($defs[$hid]['base_stats'] ?? '{}', true) ?: [];
                             $this->Realmhero_model->add((int)$realm['id'], $hid, $stats);
                             $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                         } else {
                             $this->markRejected($o['id'], 'Not enough gold for hero');
                         }
@@ -121,6 +126,7 @@ class Turn extends CI_Controller {
                         if ($this->Inventory_model->take((int)$realm['id'], $itemId, 1)) {
                             $this->db->insert('hero_items', ['realm_hero_id'=>$rid,'item_id'=>$itemId,'slot'=>$slot,'created_at'=>time()]);
                             $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                         } else {
                             $this->markRejected($o['id'], 'Item not in inventory');
                         }
@@ -141,6 +147,7 @@ class Turn extends CI_Controller {
                             $state['resources']['gold'] -= $cost;
                             $state['army'][$uid] = (int)($state['army'][$uid] ?? 0) + $qty;
                             $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                         } else {
                             $this->markRejected($o['id'], 'Not enough gold');
                         }
@@ -160,6 +167,7 @@ class Turn extends CI_Controller {
                     if (isset($defs[$sid])) {
                         $msg = EngineSpells::researchSpell($state, $defs[$sid]);
                         $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                     } else {
                         $this->markRejected($o['id'], 'Unknown spell');
                     }
@@ -187,6 +195,7 @@ class Turn extends CI_Controller {
                             'created_at'=>time()
                         ]);
                         $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                     } else {
                         $this->markRejected($o['id'], 'Spell cast target/def not found');
                     }
@@ -264,11 +273,21 @@ $result = $this->engine->resolveCombat($sideA, $sideB, $seed);
                         $this->Realm_model->saveState((int)$realm['id'], $state);
                         $this->Realm_model->saveState((int)$target['id'], $stateB);
                         $this->markApplied($o['id']);
+                    $reportLines[] = 'Order applied: '.($payload['type'] ?? '');
                     } else {
                         $this->markRejected($o['id'], 'Target not found');
                     }
                 }
             }
+
+            
+            // Guardar reporte del turno para este reino
+            $this->db->insert('realm_reports', [
+                'realm_id'=>$realm['id'],
+                'tick'=>$tick,
+                'report'=>implode("\n", $reportLines),
+                'created_at'=>time()
+            ]);
 
             // Persist final state for attacker realm
             $this->Realm_model->saveState((int)$realm['id'], $state);

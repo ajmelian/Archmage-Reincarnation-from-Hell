@@ -44,3 +44,8 @@ $lang['hero'] = 'Hero';
 $lang['inventory'] = 'Inventory';
 $lang['equip_item'] = 'Equip item';
 $lang['item'] = 'Item';
+
+$lang['alliances'] = 'Alliances';
+$lang['messages'] = 'Messages';
+$lang['leaderboard'] = 'Leaderboard';
+$lang['last_report'] = 'Last turn report';
