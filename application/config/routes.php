@@ -44,3 +44,8 @@ $route['alliances/ally/(:num)'] = 'alliances/ally/$1';
 $route['alliances/neutral/(:num)'] = 'alliances/neutral/$1';
 
 $route['inventory'] = 'inventoryui/index';
+
+$route['buildings'] = 'buildings/index';
+$route['buildings/queue'] = 'buildings/queue';
+$route['buildings/cancel/(:num)'] = 'buildings/cancel/$1';
+$route['buildings/demolish'] = 'buildings/demolish';

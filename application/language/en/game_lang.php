@@ -7,3 +7,5 @@ $lang['alliances']='Alliances';
 $lang['diplomacy']='Diplomacy';
 
 $lang['inventory_wallet']='Inventory & Wallet';
+
+$lang['buildings']='Buildings';
