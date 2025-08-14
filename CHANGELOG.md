@@ -1,22 +1,22 @@
-# v1.7.0 — Investigación (UI + colas) — determinista
+# v1.8.0 — Talentos & Sets en runtime + Golden Tests
 
 ## Añadido
-- **Definiciones** `research_def` con `base_cost_*`, `time_sec`, `growth_rate`, `max_level` y **prerrequisitos** (JSON).
-- **Servicio** `ResearchService`:
-  - `quote()` calcula coste/tiempo desde nivel actual (incluye colas) hasta un `target_level`.
-  - `queue()` descuenta **RP** (research), oro y maná, y encola con `finish_at` acumulado.
-  - `cancel()` reembolsa según `config/research.php`.
-  - `level()` devuelve el nivel efectivo (considera colas).
-- **UI** `/research`:
-  - Árbol con nivel actual, costes base y growth; formulario para fijar **nivel objetivo**.
-  - **Cola** visible con opción **cancelar**.
-- **Logs** `research_logs` (queue/cancel/finish).
+- **Compilación de bonos por reino** (`compiled_bonuses`) en 2 scopes: **economy** y **combat**.
+- **Stacking & caps** configurables (`application/config/talents.php`):
+  - Pila por clave (`add`, `mult`, `max`) y **límites duros** (+% y planos).
+- **Equipamiento** básico (`equipment`) para activar **bonos de set** de `item_set_def`.
+- **TalentTree** actualizado:
+  - `heroTalents`, `aggregateBonuses`, `equipmentBonuses` y `compileRealm()` con persistencia.
+  - `getCompiled(realm, scope)` para consulta rápida.
+- **TickRunner** usa los bonos **compilados** de economía al producir recursos.
+- **Engine (combate)** aplica bonos de combate (mult de ataque/defensa y planos por unidad).
+- **Golden Tests (CLI)** `Goldencli::run`:
+  - Economía: verifica producción con talentos de oro (+10% y +20%).
+  - Combate: verificación determinista de puntajes con mismos bonos.
 
-## Integración
-- El **Tick (S14)** ya procesa `research_queue → research_levels` y puede llamar `ResearchService::markFinished()` si se desea log adicional.
-
-## Configuración
-- `application/config/research.php`: `queue_cancel_refund` (0..1, por defecto 1.0).
+## Migraciones
+- **017_runtime_bonuses**: `compiled_bonuses`, `equipment`.
 
 ## Notas
-- 100% determinista, sin IA. RP proviene del tick (recurso `research` en `wallets`).
+- Determinista y **sin IA**. Ajusta `caps`/`stacking` según tu diseño exacto.
+- Si ya tienes tus propias fórmulas de economía/combate, solo usa `TalentTree::getCompiled()` para obtener modificadores y aplícalos en tus cálculos.
