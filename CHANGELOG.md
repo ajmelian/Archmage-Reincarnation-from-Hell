@@ -1,21 +1,20 @@
-# v1.12.0 — Panel Admin "Live Ops"
+# v1.13.0 — API pública v1 (JSON, Bearer)
 
 ## Añadido
-- **Flag de usuario admin** (`users.is_admin`) y **registro de acciones GM** (`gm_actions`).
-- **Servicio** `AdminService` con:
-  - Autorización `requireAdmin()`.
-  - Gestión de **reports** (listar, resolver).
-  - Gestión de **mutes** (listar, crear, eliminar).
-  - Ajustes rápidos de **economía** (wallet add/spend) con log.
-  - Lectura de **logs** (gm_actions, arena_logs, building_logs, research_logs, chat_messages).
-  - Búsqueda de **usuarios** y **concesión/revocación** de admin.
-- **Controlador/UI** `Admin` con vistas:
-  - **Dashboard**, **Reports**, **Mutes**, **Economía**, **Logs**, **Usuarios** (Bootstrap).
-- **CLI** `Admincli` para **grant/revoke admin** por email.
-
-## Rutas
-- `/admin` + subrutas para cada sección (reports, mutes, economy, logs, users).
+- **Autenticación** por **Bearer token**:
+  - `api_tokens` (hash SHA-256, scopes, expiración, revoke).
+  - `ApiAuth` (mint/validate/revoke + scopes).
+  - Endpoint `POST /api/auth/token` y **CLI** `Apicli` (mint/list/revoke).
+- **Base API** `MY_ApiController`:
+  - CORS configurable, JSON helpers y **rate limit** por token (120 req/60s, configurable).
+- **Endpoints v1** (solo JSON):
+  - `GET /api/v1/me`, `GET /api/v1/wallet`, `GET /api/v1/buildings`.
+  - `GET /api/v1/research`, `POST /api/v1/research/queue` (scope `write`).
+  - `GET /api/v1/arena/leaderboard`, `GET /api/v1/arena/history`.
+  - `POST /api/v1/arena/queue` y `/api/v1/arena/cancel` (scope `arena`).
+  - `POST /api/v1/battle/simulate` (usa `Engine::duel`).
+- **Docs** simples en `/api/docs` (Bootstrap).
 
 ## Notas
-- Determinista y sin IA.
-- Requiere que la sesión tenga `userId` y que en `users` el usuario tenga `is_admin=1`.
+- Determinista y **sin IA**.
+- Ajusta CORS en `application/config/api.php` para producción.

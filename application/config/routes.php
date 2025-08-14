@@ -87,3 +87,17 @@ $route['admin/logs'] = 'admin/logs/gm_actions';
 $route['admin/logs/(.*)'] = 'admin/logs/$1';
 $route['admin/users'] = 'admin/users';
 $route['admin/user_admin/(:num)/(grant|revoke)'] = 'admin/user_admin/$1/$2';
+
+# API v1
+$route['api/docs'] = 'api/docs/index';
+$route['api/auth/token'] = 'api/auth/token';
+$route['api/v1/me'] = 'api/v1/me';
+$route['api/v1/wallet'] = 'api/v1/wallet';
+$route['api/v1/buildings'] = 'api/v1/buildings';
+$route['api/v1/research'] = 'api/v1/research';
+$route['api/v1/research/queue'] = 'api/v1/research_queue';
+$route['api/v1/arena/leaderboard'] = 'api/v1/arena_leaderboard';
+$route['api/v1/arena/history'] = 'api/v1/arena_history';
+$route['api/v1/arena/queue'] = 'api/v1/arena_queue';
+$route['api/v1/arena/cancel'] = 'api/v1/arena_cancel';
+$route['api/v1/battle/simulate'] = 'api/v1/battle_simulate';
