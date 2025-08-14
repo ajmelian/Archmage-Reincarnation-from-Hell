@@ -1,0 +1,2 @@
+id,type,base_cost,level,expected
+s1,buff,50,3,"{\"power\":1.15,\"cost\":50,\"duration\":3}"

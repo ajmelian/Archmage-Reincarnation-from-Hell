@@ -1,0 +1,2 @@
+id,state,expected
+sample1,"{\"buildings\":{\"gold_mine\":10,\"mana_well\":8,\"academy\":5},\"bonuses\":{\"gold\":[0.1],\"mana\":[0.0],\"research\":[0.0]}}","{\"gold\":163,\"mana\":71,\"research\":15}"

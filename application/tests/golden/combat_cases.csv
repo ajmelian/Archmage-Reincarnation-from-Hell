@@ -1,0 +1,2 @@
+id,sideA,sideB,expected
+c1,"[{\"id\": \"Aunit\", \"attack\": 12, \"defense\": 10, \"hp\": 1, \"qty\": 100, \"damage_type\": \"physical\"}]","[{\"id\": \"Bunit\", \"attack\": 10, \"defense\": 12, \"hp\": 1, \"qty\": 100, \"damage_type\": \"magical\"}]","{\"winner\": \"draw\", \"lossesA\": {}, \"lossesB\": {}}"

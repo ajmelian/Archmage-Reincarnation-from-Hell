@@ -1,50 +1,25 @@
-# v0.7.0 — Combate avanzado + Battle Replay + API JWT (rate limited)
+# v0.9.0 — Paridad de fórmulas + Golden tests
 
 ## Añadido
-- **Combate avanzado**
-  - **Targeting configurable**: `proportional`, `focus_low_hp`, `focus_high_hp` (configurable en `application/config/game.php`).
-  - **Tipos de daño** por unidad (`physical` / `magical`) y **resistencias** por stack (`resist` JSON).
-  - **Round log** en el resultado del motor para facilitar replays.
-- **Battle Replay**
-  - Ruta `/battle/{id}` con vista básica del log (`application/controllers/Battle.php` + `application/views/battle/view.php`).
-- **API REST (JWT)**
-  - `POST /api/login` → devuelve **JWT (HS256)**.
-  - `GET /api/state` → estado del reino del usuario autenticado.
-  - **Rate limiting**: 60 req/min por ruta/usuario (tabla `api_rate`).
-  - Librería `Jwt.php` ligera (sin dependencias externas).
-- **Simulador CLI**
-  - `php public/index.php sim duel <atk> <def> <runs>` para pruebas de balance.
+- **Configuración de fórmulas** (`application/config/formulas.php`) con versión `legacy` y coeficientes editables para economía, combate y hechizos.
+- **Formulas/**:
+  - `CombatFormula`: cálculo de pérdidas por ronda con resistencias por tipo y selección de objetivo proporcional.
+  - `EconomyFormula`: producción de oro/maná/investigación con diminishing returns, stacking/caps y coste de investigación escalado.
+  - `SpellFormula`: potencia por nivel, coste de maná escalado y duración por tipo de hechizo.
+- **Golden tests (CLI)**:
+  - `Golden::run [all|economy|combat|spells]` lee CSVs en `application/tests/golden/*.csv`, ejecuta casos y valida contra resultados esperados (tolerancia configurable).
+  - Salida con resumen y código de retorno != 0 si hay fallos (útil para CI).
+- **Integración opcional en Engine**:
+  - Si `formulas.enable = true`, el combate del juego usa `CombatFormula` para calcular pérdidas por ronda (manteniendo compatibilidad de salida).
 
-## Cambios
-- `application/libraries/Engine.php`:
-  - Integra `Formula` para **daño base** y **HP por defecto**.
-  - Añade **selector de objetivo** según `game.php`.
-  - Calcula **pérdidas por stack** aplicando resistencias.
-  - Devuelve `rounds` (round log) junto al `log` plano.
+## Notas
+- Los CSV de ejemplos son **plantillas**; sustituye `expected` con tus valores de referencia del juego original.
+- Ajusta coeficientes en `formulas.php` para conseguir paridad exacta sin tocar código.
 
-## Migraciones
-- **007_advanced_combat_api**
-  - `unit_def`: columnas nuevas `type` (VARCHAR), `damage_type` (VARCHAR), `resist` (JSON), `speed` (INT), `morale` (INT).
-  - `api_rate`: tabla para contabilizar llamadas por ventana de 60s.
-  - **Compatibilidad BD**:
-    - MySQL ≥ 5.7 soporta `JSON`.
-    - En MariaDB antiguas, cambia `resist JSON` por `TEXT` si es necesario.
-
-## Rutas nuevas
-- `battle/(:num)  → Battle::view`
-- `api/login      → Api_auth::login`
-- `api/state      → Api_game::state`
-
-## Configuración
-- `application/config/game.php` → bloque `combat`:
-  - `damage_scale`, `min_damage`, `spread`, `targeting`, `hp_per_unit`.
-- **JWT**: define `JWT_SECRET` en el entorno del servidor.
-
-## Seguridad
-- **JWT** con firma HMAC-SHA256.
-- **Rate limiting** básico por usuario/ruta/ventana de 60s.
-
-## Cómo actualizar
-1. **Migraciones**:  
-   ```bash
-   php public/index.php migrate up   # avanza hasta 007
+## Cómo ejecutar
+```bash
+php public/index.php golden run all
+php public/index.php golden run combat
+php public/index.php golden run economy
+php public/index.php golden run spells
+```
