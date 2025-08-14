@@ -1,20 +1,19 @@
-# v1.16.0 — I18N/L10N completo (multilenguaje + formatos locales)
+# v1.17.0 — Rendimiento & Caching
 
 ## Añadido
-- **Preferencia de idioma** por usuario (`users.locale`) y **timezone** opcional.
-- **Config** `i18n.php`: idiomas soportados (es/en), default, fallback, cookie y autodetección.
-- **LanguageService**:
-  - Detección (query/session/cookie/usuario/Accept-Language), `set()` persistente.
-  - `load()` con **fallback** automático y `line($key, $params)` con **pluralización** simple.
-- **Helper** `t()` / `tp()` para traducir en vistas/controladores.
-- **Format** (L10N): `dateTime()` con Intl si está disponible; `number()` con locale.
-- **Controlador** `Lang::set/<code>` y **ruta** `/lang/set/{code}`.
-- **Archivos de idioma** ampliados (`es`, `en`) con claves usadas en UI.
+- **Índices** en tablas críticas: `chat_messages(channel_id,id)`, `dm_messages(to_realm_id,is_read,id)`, `arena_matches(created_at)`, `research_queue(realm_id,finish_at)`, `rate_counters(action,window_start)`.
+- **Caching**:
+  - Librería `Caching` (get/set/remember + **tags** simples) y helper `fragment_cache()` para vistas.
+  - **Microcaché API** en `V1` (`me`, `wallet`, `buildings`, `research`, `arena_leaderboard`, `arena_history`) con TTLs configurables.
+  - **ETag/If-None-Match** y `Cache-Control` (GET) en `MY_ApiController` + `Vary: Authorization`.
+- **CLI** `Cachecli`:
+  - `clear_tag <tag>` para invalidación por etiqueta.
+  - `warm` para precalentar defs, leaderboard y wallets.
+- **Panel Ops** `/ops/cache` con estado de driver y TTLs.
 
-## Integración
-- `MY_Controller` carga LanguageService/Format y helper i18n.
-- Vistas **Chat**, **Mensajes** y **Auth** actualizadas para usar `t()` y `Format`.
-- Añadido **selector de idioma** (botones) en la vista de Chat.
+## Config
+- `cache_ext.php`: driver, prefijo y TTL por defecto.
+- `performance.php`: TTLs por endpoint API.
 
 ## Notas
-- Determinista y sin IA. Puedes seguir migrando cadenas del resto de vistas de forma incremental.
+- Totalmente determinista, sin IA. Mejora latencias y reduce carga de DB/CPU.

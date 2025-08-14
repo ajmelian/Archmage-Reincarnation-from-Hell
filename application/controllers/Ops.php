@@ -18,3 +18,13 @@ class Ops extends MY_Controller {
         $this->load->view('ops/metrics', ['topReq'=>$topReq,'topHtml'=>$topHtml]);
     }
 }
+
+
+    public function cache() {
+        $this->load->config('cache_ext');
+        $this->load->config('performance');
+        $this->load->view('ops/cache', [
+            'cache'=>$this->config->item('cache_ext'),
+            'perf'=>$this->config->item('performance'),
+        ]);
+    }

@@ -3,8 +3,11 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching']);
+        $this->load->config('performance');
     }
+
+    private function micro($key, $ttl, $cb) { return $this->caching->remember($key, $ttl, $cb); }
 
     private function currentRealm(): ?array {
         $u = $this->apiUser;
@@ -15,30 +18,33 @@ class V1 extends MY_ApiController {
     // GET /api/v1/me
     public function me() {
         $realm = $this->currentRealm();
-        $this->json(['ok'=>true,'user'=>['id'=>(int)$this->apiUser['id'],'email'=>$this->apiUser['email']],'realm'=>$realm]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['me'] ?? 5);
+        $out = $this->micro('api:me:'.$this->apiUser['id'], $ttl, function(){ $r=$this->currentRealm(); return ['ok'=>true,'user'=>['id'=>(int)$this->apiUser['id'],'email'=>$this->apiUser['email']], 'realm'=>$r]; });
+        $this->json($out);
     }
 
     // GET /api/v1/wallet
     public function wallet() {
         $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
-        $bal = $this->wallet->balance((int)$realm['id']);
-        $this->json(['ok'=>true,'wallet'=>$bal]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['wallet'] ?? 3);
+        $out = $this->micro('api:wallet:'.$realm['id'], $ttl, function() use ($realm){ return ['ok'=>true,'wallet'=>$this->wallet->balance((int)$realm['id'])]; });
+        $this->json($out);
     }
 
     // GET /api/v1/buildings
     public function buildings() {
         $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
-        $rows = $this->db->get_where('buildings',['realm_id'=>$realm['id']])->result_array();
-        $this->json(['ok'=>true,'buildings'=>$rows]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['buildings'] ?? 15);
+        $out = $this->micro('api:buildings:'.$realm['id'], $ttl, function() use ($realm){ $rows=$this->db->get_where('buildings',['realm_id'=>$realm['id']])->result_array(); return ['ok'=>true,'buildings'=>$rows]; });
+        $this->json($out);
     }
 
     // GET /api/v1/research
     public function research() {
         $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
-        $levels = $this->db->get_where('research_levels',['realm_id'=>$realm['id']])->result_array();
-        $queue  = $this->db->order_by('finish_at','ASC')->get_where('research_queue',['realm_id'=>$realm['id']])->result_array();
-        $defs   = $this->researchservice->listDefs();
-        $this->json(['ok'=>true,'defs'=>$defs,'levels'=>$levels,'queue'=>$queue]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['research'] ?? 20);
+        $out = $this->micro('api:research:'.$realm['id'], $ttl, function() use ($realm){ $levels=$this->db->get_where('research_levels',['realm_id'=>$realm['id']])->result_array(); $queue=$this->db->order_by('finish_at','ASC')->get_where('research_queue',['realm_id'=>$realm['id']])->result_array(); $defs=$this->researchservice->listDefs(); return ['ok'=>true,'defs'=>$defs,'levels'=>$levels,'queue'=>$queue]; });
+        $this->json($out);
     }
 
     // POST /api/v1/research/queue
@@ -59,15 +65,17 @@ class V1 extends MY_ApiController {
     // GET /api/v1/arena/leaderboard
     public function arena_leaderboard() {
         $limit = (int)$this->input->get('limit', TRUE) ?: 50;
-        $rows = $this->arenaservice->leaderboard($limit);
-        $this->json(['ok'=>true,'leaderboard'=>$rows]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['arena_leaderboard'] ?? 20);
+        $out = $this->micro('api:arena:lb:'.$limit, $ttl, function() use($limit){ $rows=$this->arenaservice->leaderboard($limit); return ['ok'=>true,'leaderboard'=>$rows]; });
+        $this->json($out);
     }
 
     // GET /api/v1/arena/history
     public function arena_history() {
         $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
-        $rows = $this->arenaservice->history((int)$realm['id']);
-        $this->json(['ok'=>true,'history'=>$rows]);
+        $ttl=(int)($this->config->item('performance')['api_ttl']['arena_history'] ?? 15);
+        $out = $this->micro('api:arena:hist:'.$realm['id'], $ttl, function() use($realm){ $rows=$this->arenaservice->history((int)$realm['id']); return ['ok'=>true,'history'=>$rows]; });
+        $this->json($out);
     }
 
     // POST /api/v1/arena/queue

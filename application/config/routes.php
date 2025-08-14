@@ -111,3 +111,5 @@ $route['auth/second_factor'] = 'auth/second_factor';
 $route['account/security'] = 'account/security';
 
 $route['lang/set/(:any)'] = 'lang/set/$1';
+
+$route['ops/cache'] = 'ops/cache';

@@ -1,6 +1,8 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MY_ApiController extends CI_Controller {
+    protected function etagCalc($payload){ return '"'.sha1($payload).'"'; }
+    protected function canCache(){ return $this->input->method(TRUE)==='GET'; }
     protected $apiUser = null;
     protected $apiToken = null;
 

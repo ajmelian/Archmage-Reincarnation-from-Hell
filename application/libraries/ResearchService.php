@@ -6,6 +6,7 @@ class ResearchService {
         $this->CI =& get_instance();
         $this->CI->load->database();
         $this->CI->load->config('research');
+        $this->CI->load->library('Caching');
         $this->CI->load->library('Wallet');
         $this->cfg = $this->CI->config->item('research') ?? [];
     }
