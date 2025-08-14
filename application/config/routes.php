@@ -168,3 +168,14 @@ $route['twofa/enable'] = 'twofa/enable';
 $route['twofa/verify_setup'] = 'twofa/verify_setup';
 $route['twofa/disable'] = 'twofa/disable';
 $route['twofa/login_step'] = 'twofa/login_step';
+
+$route['backup'] = 'backup/index';
+$route['backup/create'] = 'backup/create';
+$route['backup/download/(:num)'] = 'backup/download/$1';
+$route['backup/delete/(:num)'] = 'backup/delete/$1';
+$route['export'] = 'export/index';
+$route['export/download'] = 'export/download';
+$route['api/v1/export'] = 'api/v1/export';
+$route['backupcli/create'] = 'backupcli/create';
+$route['backupcli/prune'] = 'backupcli/prune';
+$route['backupcli/list'] = 'backupcli/list';

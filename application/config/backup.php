@@ -1,12 +1,12 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 $config['backup'] = [
-    // Ruta al directorio de backups; por defecto en la raíz del proyecto
-    'dir' => APPPATH.'../backups',
-    // Cantidad máxima de archivos a conservar (rotación)
-    'keep' => 10,
-    // Comprimir .sql en .gz
-    'gzip' => true,
-    // Tablas candidatas a exportar como seeds CSV (puedes añadir las tuyas)
-    'seed_tables' => ['research_levels','buildings','realms','users'],
+    // Carpeta donde se guardan los dumps (asegúrate de que sea escribible)
+    'path' => FCPATH.'backups',
+    // Formato: 'gzip' o 'zip' (usa DB Utility de CI3)
+    'format' => 'gzip',
+    // Retención
+    'keep_last' => 10,          // como mínimo, guarda los últimos N
+    'max_total_mb' => 2048,     // si el total supera, elimina los más antiguos
+    'filename_prefix' => 'archmage_db_',
 ];

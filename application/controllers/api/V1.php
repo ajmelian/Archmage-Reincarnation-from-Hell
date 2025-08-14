@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService','ModerationService','AuditLog']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService','ModerationService','AuditLog','ExportService']);
         $this->load->config('performance');
     }
 
@@ -300,5 +300,26 @@ class V1 extends MY_ApiController {
             $this->json(['ok'=>true,'id'=>$id]);
         } catch (Throwable $e) {
             $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
+    }
+
+
+
+    // GET /api/v1/export?module=market_trades&format=csv&since=...
+    public function export() {
+        $this->apiauth->enforceScope($this->apiToken, 'read');
+        $module = (string)$this->input->get('module', TRUE);
+        $format = (string)$this->input->get('format', TRUE) ?: 'csv';
+        $filters = [];
+        foreach (['since','realm_id','user_id','alliance_id','auction_id','item_id','status','target_realm_id'] as $k) {
+            $v = $this->input->get($k, TRUE); if ($v!==null && $v!=='') $filters[$k] = $v;
+        }
+        $rows = $this->exportservice->fetch($module, $filters);
+        if ($format==='json') {
+            $payload = json_encode($rows, JSON_UNESCAPED_UNICODE);
+            $this->output->set_content_type('application/json'); $this->output->set_output($payload);
+        } else {
+            $csv = $this->exportservice->toCsv($rows);
+            $this->output->set_content_type('text/csv'); $this->output->set_output($csv);
         }
     }

@@ -1,16 +1,19 @@
-# v1.23.0 — Seguridad avanzada (CSP/HSTS, CSRF, rehash y 2FA)
+# v1.24.0 — Backups & Export
 
 ## Añadido
-- **Migration 032**: `users.twofa_secret`, `users.twofa_enabled`, `last_login_at`, `last_login_ip`.
-- **Hook** `SecurityHeaders` + `application/config/security.php` con CSP y cabeceras seguras (HSTS, XFO, X-CTO, Referrer-Policy, Permissions-Policy).
-- **2FA TOTP**: librería `TwoFA`, controlador `Twofa` y vistas (activar, verificar, desactivar).
-- **Rehash** de contraseñas en el siguiente login (`Passwords::verifyAndRehash`). 
-- **Config** de **CSRF** para entorno `production` (expira 300s).
-
-## Cambios
-- Rutas `/twofa/*` añadidas.
-- Parche opcional comentado en `Auth.php` para integrar paso 2FA y rehash.
+- **BD**: tabla `backups` (metadatos de dumps).
+- **Config** `backup.php`: ruta (`FCPATH/backups` por defecto), formato (gzip|zip), retención (`keep_last`, `max_total_mb`).
+- **BackupService**: crea dumps de DB con CI DB Utility, guarda en disco y en `backups`, calcula checksum, **prune** automático por retención.
+- **ExportService**: exporta módulos a CSV o JSON con filtros comunes (`since`, `realm_id`, etc.). Módulos incluidos:
+  - `realms`, `inventory`, `market_listings`, `market_trades`, `auctions`, `auction_bids`,
+  - `alliances`, `alliance_members`, `audit_log`, `mod_flags`, `mod_actions`,
+  - `economy_history`, `econ_params`.
+- **UI Admin**:
+  - `/backup`: listar/crear/descargar/eliminar backups.
+  - `/export`: selector de módulo + filtros, descarga CSV/JSON.
+- **CLI**: `Backupcli` (`create`, `prune`, `list`).
+- **API v1**: `GET /api/v1/export?module=...&format=csv|json` (requiere scope `read`).
 
 ## Notas
-- Ajusta la **CSP** según tus CDNs reales.
-- La rotación de sesión se recomienda tras aprobar el 2FA (`session_regenerate_id(true)`).
+- Los ficheros se guardan en `public/backups` (ajustable). Asegura permisos y, si deseas, protege con reglas del servidor o detrás de controller download.
+- Determinista y sin IA.
