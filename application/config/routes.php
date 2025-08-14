@@ -113,3 +113,7 @@ $route['account/security'] = 'account/security';
 $route['lang/set/(:any)'] = 'lang/set/$1';
 
 $route['ops/cache'] = 'ops/cache';
+
+$route['ops/backups'] = 'ops/backups';
+$route['healthz'] = 'health/live';
+$route['readyz'] = 'health/ready';

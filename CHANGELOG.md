@@ -1,19 +1,15 @@
-# v1.17.0 — Rendimiento & Caching
+# v1.18.0 — Backups & Herramientas de despliegue
 
 ## Añadido
-- **Índices** en tablas críticas: `chat_messages(channel_id,id)`, `dm_messages(to_realm_id,is_read,id)`, `arena_matches(created_at)`, `research_queue(realm_id,finish_at)`, `rate_counters(action,window_start)`.
-- **Caching**:
-  - Librería `Caching` (get/set/remember + **tags** simples) y helper `fragment_cache()` para vistas.
-  - **Microcaché API** en `V1` (`me`, `wallet`, `buildings`, `research`, `arena_leaderboard`, `arena_history`) con TTLs configurables.
-  - **ETag/If-None-Match** y `Cache-Control` (GET) en `MY_ApiController` + `Vary: Authorization`.
-- **CLI** `Cachecli`:
-  - `clear_tag <tag>` para invalidación por etiqueta.
-  - `warm` para precalentar defs, leaderboard y wallets.
-- **Panel Ops** `/ops/cache` con estado de driver y TTLs.
-
-## Config
-- `cache_ext.php`: driver, prefijo y TTL por defecto.
-- `performance.php`: TTLs por endpoint API.
+- **Tabla** `backup_jobs` para registrar dumps/restores/seeds.
+- **Config** `backup.php`: directorio, rotación (keep), compresión, tablas para seeds.
+- **CLI**:
+  - `Backupcli`: `dump [tablesCsv]`, `restore <filename>`, `list` y rotación automática.
+  - `Seedcli`: `export [tablesCsv]` a **CSV** e `imp <csv> <tabla>` para importar.
+  - `Deploycli quick`: ejecuta migraciones y guía para warmers.
+- **Ops** `/ops/backups` (solo admin) con listado de archivos y jobs.
+- **Health endpoints** `/healthz` y `/readyz` (comprobación de DB).
 
 ## Notas
-- Totalmente determinista, sin IA. Mejora latencias y reduce carga de DB/CPU.
+- Determinista y sin IA. Usa **CI DB Utility** para backups y CSV puro para seeds.
+- Planifica cron para dumps diarios y verifica permisos de escritura en `backup.dir`.
