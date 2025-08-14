@@ -6,9 +6,11 @@ class MY_Controller extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->library('Observability');
+        $this->load->library(['Observability','LanguageService','Format']);
         $this->obsLabels = ['endpoint'=>$this->uri->uri_string()];
         $this->observability->beginRequest($this->obsName, $this->obsLabels);
+        $this->langService = $this->languageservice; $this->fmt = $this->format;
+        $this->load->helper('i18n');
     }
 
     public function __destruct() {

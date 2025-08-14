@@ -109,3 +109,5 @@ $route['auth/login'] = 'auth/login';
 $route['auth/logout'] = 'auth/logout';
 $route['auth/second_factor'] = 'auth/second_factor';
 $route['account/security'] = 'account/security';
+
+$route['lang/set/(:any)'] = 'lang/set/$1';
