@@ -1,24 +1,33 @@
-# v1.19.0 — Economía avanzada & balanceo
+# v1.20.0 — Mercado & Subastas (tasas + anti‑abuso)
 
 ## Añadido
 - **Tablas**:
-  - `econ_params` (clave/valor de balanceo con timestamps).
-  - `econ_modifiers` (modificadores globales o por reino; multiplicadores/aditivos; expiración).
-  - `economy_history` (registro por tick: bruto, upkeep, mods y neto).
-- **EconomyService**:
-  - `preview(realmId)` calcula producción por tick con **rendimientos decrecientes** (`out = max*(1-e^{-k x})`), **anti-snowball** por percentil (bonus bottom y penalización top), **upkeep** por unidades y límites **cap per tick**.
-  - `tick(realmId)` aplica el resultado a la **Wallet** y registra `economy_history`.
-  - `tickAll(limit)` procesa en lote.
-  - `setParam(key, val)` para ajustes en caliente.
-- **CLI** `Econcli`:
-  - `show_params`, `set <key> <value>`.
-  - `mod_add <realm|global> <key> <value> [minutes] [reason]` / `mod_del <id>`.
-  - `simulate <realmId>`, `tick_one <realmId>`, `tick_all [limit]`.
-- **Admin UI** `/admin/economy_balance` (lectura/edición de parámetros, listado de modificadores).
+  - `inventory` (si no existía): stock por `realm_id`/`item_id`.
+  - `market_listings` (venta directa con depósito, expiración y fee).
+  - `market_trades` (histórico para referencia de precios).
+  - `auctions` (subastas con compra ya, incremento mínimo y soft-extend).
+  - `auction_bids` (pujas).
+- **MarketService**:
+  - Publicar, cancelar, comprar y expirar listados.
+  - **Depósito** (se devuelve al vender/cancelar; se pierde al expirar).
+  - **Fee** al vendedor (por defecto 2.5%). Anti‑abuso:
+    - Rate limit por ventana (publicaciones y compras, reutiliza `rate_counters`).
+    - **Límites de precio**: ppu dentro de [min_factor..max_factor] × **precio de referencia** (mediana de últimas trades o `ref_prices` del config).
+    - Bloqueo de **auto‑compra** (mismo reino).
+- **AuctionService**:
+  - Crear subasta, pujar (rate limit), cancelar (sin pujas), finalizar (automática o `buyout`), y **soft‑extend** en últimos segundos.
+  - Cobro al ganador, fee al vendedor y entrega/escrow de items simétrico al mercado.
+- **UI** (Bootstrap):
+  - `Market` (listar, vender, mis listados, comprar).
+  - `Auctions` (listado, detalle con pujas, crear, cancelar).
 - **API v1**:
-  - `GET /api/v1/economy/preview` (producción por tick del reino actual).
-  - `GET /api/v1/economy/params` (parámetros de economía).
+  - `GET /api/v1/market/listings`, `POST /api/v1/market/list`, `POST /api/v1/market/buy`.
+  - `GET /api/v1/auctions/active`, `POST /api/v1/auctions/create`, `POST /api/v1/auctions/bid`.
+- **CLI** `Marketcli::expire` (expira listados y finaliza subastas).
+
+## Config
+- `application/config/market.php`: fees, depósitos, límites de precio, duración, **ref_prices** opcionales y rate limits.
 
 ## Notas
-- Totalmente determinista y sin IA. Fórmulas y límites en `econ_params` y `application/config/economy.php`.
-- Integra con Observability: métrica `economy.tick`.
+- Determinista y sin IA. Depende de **Wallet** (`add`/`spend`) y `realms` para mapear usuario→reino.
+- Para poblar inventario, inserta filas en `inventory` (realm_id, item_id, qty).

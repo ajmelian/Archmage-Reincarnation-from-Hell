@@ -1,118 +1,143 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MarketService {
-    private array $cfg;
-
     public function __construct() {
-        $CI =& get_instance();
-        $CI->load->database();
-        $CI->load->config('market');
-        $CI->load->library('Wallet');
-        $CI->load->library('Inventory');
-        $this->cfg = $CI->config->item('market') ?? [];
-        $this->CI = $CI;
+        $this->CI =& get_instance();
+        $this->CI->load->database();
+        $this->CI->load->config('market');
+        $this->CI->load->library(['Wallet','Observability']);
     }
 
-    public function createListing(int $realmId, string $itemId, int $qty, int $ppu): int {
-        $this->guardFloor($ppu);
-        $this->guardDailyLimit($realmId, 'sell');
-        $this->CI->inventory->remove($realmId, $itemId, max(1,$qty), 'market_escrow');
+    private function cfg($key, $default=null) {
+        $cfg = $this->CI->config->item('market') ?? [];
+        $val = $cfg;
+        foreach (explode('.', $key) as $k) { $val = $val[$k] ?? null; if ($val===null) return $default; }
+        return $val;
+    }
+
+    private function rateBump($realmId, $action) {
         $now = time();
-        $exp = $now + (int)($this->cfg['listing_lifetime'] ?? 259200);
-        $data = [
-            'realm_id'=>$realmId,'item_id'=>$itemId,'qty'=>max(1,$qty),
-            'price_per_unit'=>max($this->floor(),$ppu),
-            'currency'=>'gold','tax_rate'=>(float)($this->cfg['tax_rate'] ?? 0.05),
-            'status'=>'active','sold_qty'=>0,'buyer_realm_id'=>null,
-            'created_at'=>$now,'expires_at'=>$exp,
-        ];
-        $this->CI->db->insert('market_listings', $data);
-        $id = (int)$this->CI->db->insert_id();
-        $this->log('listing', $realmId, $id, $data);
-        return $id;
+        $r = $this->cfg('rate.'.$action, ['window_sec'=>60,'max'=>30]);
+        $ws = (int)floor($now / $r['window_sec']) * $r['window_sec'];
+        $key = ['realm_id'=>$realmId,'action'=>'market_'.$action,'window_start'=>$ws];
+        $row = $this->CI->db->get_where('rate_counters', $key)->row_array();
+        if (!$row) {
+            $this->CI->db->insert('rate_counters', $key + ['count'=>1,'updated_at'=>$now]); return;
+        }
+        if ((int)$row['count'] >= (int)$r['max']) throw new Exception('Rate limited');
+        $this->CI->db->set('count','count+1',FALSE)->set('updated_at',$now)->where($key)->update('rate_counters');
     }
 
-    public function buy(int $buyerRealmId, int $listingId, int $qty): array {
-        $this->guardDailyLimit($buyerRealmId, 'buy');
-        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
-        if (!$l) throw new Exception('Listing not found');
-        if ($l['status'] !== 'active') throw new Exception('Listing not active');
-        if ($l['expires_at'] < time()) { $this->expire($l['id']); throw new Exception('Listing expired'); }
-        $remain = (int)$l['qty'] - (int)$l['sold_qty'];
-        $qty = max(1, min($qty, $remain));
-        if ($qty <= 0) throw new Exception('No quantity left');
-        $total = $qty * (int)$l['price_per_unit'];
-        $tax = (float)$l['tax_rate'] * $total;
-        $pay = (int)ceil($total + $tax);
-        $this->CI->wallet->spend($buyerRealmId, 'gold', $pay, 'market_buy', 'listing', (int)$l['id']);
-        $this->CI->db->trans_begin();
-        try {
-            $this->CI->db->set('sold_qty', 'sold_qty+'.$qty, FALSE)
-                ->where('id', $l['id'])->update('market_listings');
-            $status = ($qty === $remain) ? 'sold' : 'partial';
-            $this->CI->db->where('id', $l['id'])->update('market_listings', ['status'=>$status,'buyer_realm_id'=>$buyerRealmId]);
-            // Transfer items/currency should be implemented here
-            $this->log('buy', $buyerRealmId, $l['id'], ['qty'=>$qty,'total'=>$total,'tax'=>$tax,'pay'=>$pay]);
-            $this->CI->db->trans_commit();
-        } catch (Throwable $e) {
-            $this->CI->db->trans_rollback();
-            throw $e;
+    private function refPrice($itemId): ?int {
+        $over = $this->cfg('ref_prices');
+        if (is_array($over) && isset($over[$itemId])) return (int)$over[$itemId];
+        // mediana de últimas 50 trades
+        $rows = $this->CI->db->order_by('created_at','DESC')->limit(50)->get_where('market_trades',['item_id'=>$itemId])->result_array();
+        if (!$rows) return null;
+        $prices = array_map(function($r){ return (int)$r['price_per_unit']; }, $rows);
+        sort($prices);
+        $n = count($prices);
+        if ($n%2==1) return $prices[intval($n/2)];
+        return intval(($prices[$n/2 -1] + $prices[$n/2]) / 2);
+    }
+
+    private function assertPriceBounds($itemId, $ppu) {
+        $ref = $this->refPrice($itemId);
+        $minF = (float)$this->cfg('min_factor', 0.5);
+        $maxF = (float)$this->cfg('max_factor', 2.0);
+        if ($ref === null) {
+            if (!$this->cfg('allow_without_ref', true)) throw new Exception('No reference price');
+            if ($ppu < 1) throw new Exception('Price too low');
+            return;
         }
-        return ['status'=>$status,'qty'=>$qty,'pay'=>$pay];
+        $min = (int)floor($ref * $minF);
+        $max = (int)ceil($ref * $maxF);
+        if ($ppu < max(1,$min) || $ppu > max($min+1, $max)) throw new Exception('Price out of bounds');
+    }
+
+    private function decInventory($realmId, $itemId, $qty) {
+        $row = $this->CI->db->get_where('inventory',['realm_id'=>$realmId,'item_id'=>$itemId])->row_array();
+        $have = (int)($row['qty'] ?? 0);
+        if ($have < $qty) throw new Exception('Insufficient items');
+        $left = $have - $qty;
+        $this->CI->db->update('inventory',['qty'=>$left,'updated_at'=>time()],['realm_id'=>$realmId,'item_id'=>$itemId]);
+    }
+
+    private function incInventory($realmId, $itemId, $qty) {
+        $row = $this->CI->db->get_where('inventory',['realm_id'=>$realmId,'item_id'=>$itemId])->row_array();
+        if ($row) $this->CI->db->update('inventory',['qty'=>((int)$row['qty'])+$qty,'updated_at'=>time()],['id'=>$row['id']]);
+        else $this->CI->db->insert('inventory',['realm_id'=>$realmId,'item_id'=>$itemId,'qty'=>$qty,'updated_at'=>time()]);
+    }
+
+    public function listItem(int $realmId, string $itemId, int $qty, int $ppu): int {
+        if ($qty <= 0 || $ppu <= 0) throw new Exception('Invalid qty/price');
+        $this->rateBump($realmId, 'listings');
+        $this->assertPriceBounds($itemId, $ppu);
+        // límite de listados activos por reino
+        $act = $this->CI->db->where(['seller_realm_id'=>$realmId,'status'=>0])->count_all_results('market_listings');
+        $maxA = (int)$this->cfg('max_active_listings', 20);
+        if ($act >= $maxA) throw new Exception('Too many active listings');
+        // depósito (oro)
+        $feeBps = (int)$this->cfg('deposit_bps', 50);
+        $deposit = (int)floor(($qty * $ppu) * $feeBps / 10000);
+        if ($deposit > 0) {
+            if (!$this->CI->wallet->spend($realmId, 'gold', $deposit, 'market_deposit', 'market', null)) throw new Exception('Not enough gold for deposit');
+        }
+        // mover items a "escrow": restar del inventario
+        $this->decInventory($realmId, $itemId, $qty);
+        $exp = time() + ((int)$this->cfg('listing_hours',24))*3600;
+        $this->CI->db->insert('market_listings',[
+            'seller_realm_id'=>$realmId,'item_id'=>$itemId,'qty'=>$qty,'price_per_unit'=>$ppu,'deposit'=>$deposit,
+            'tax_bps'=>(int)$this->cfg('fee_bps',250),'status'=>0,'created_at'=>time(),'expires_at'=>$exp
+        ]);
+        return (int)$this->CI->db->insert_id();
     }
 
     public function cancel(int $realmId, int $listingId): void {
-        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
-        if (!$l || (int)$l['realm_id'] !== $realmId) throw new Exception('Not your listing');
-        if ($l['status'] !== 'active') throw new Exception('Cannot cancel this listing');
-        $this->CI->db->where('id', $listingId)->update('market_listings', ['status'=>'canceled']);
-        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
-        if ($l) {
-            $remain = (int)$l['qty'] - (int)$l['sold_qty'];
-            if ($remain>0) $this->CI->inventory->add($realmId, $l['item_id'], $remain, 'market_return', 'listing', (int)$l['id']);
-        }
-        $this->log('cancel', $realmId, $listingId, []);
+        $row = $this->CI->db->get_where('market_listings',['id'=>$listingId])->row_array();
+        if (!$row || (int)$row['status']!==0) throw new Exception('Cannot cancel');
+        if ((int)$row['seller_realm_id'] !== $realmId) throw new Exception('Not your listing');
+        $this->CI->db->update('market_listings',['status'=>2],['id'=>$listingId]);
+        // devolver items y depósito
+        $this->incInventory($realmId, $row['item_id'], (int)$row['qty']);
+        if ((int)$row['deposit'] > 0) $this->CI->wallet->add($realmId, 'gold', (int)$row['deposit'], 'market_deposit_refund', 'market', $listingId);
     }
 
-    public function expire(int $listingId): void {
-        $this->CI->db->where('id', $listingId)->update('market_listings', ['status'=>'expired']);
-        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
-        if ($l) {
-            $remain = (int)$l['qty'] - (int)$l['sold_qty'];
-            if ($remain>0) $this->CI->inventory->add((int)$l['realm_id'], $l['item_id'], $remain, 'market_return', 'listing', (int)$l['id']);
-        }
-        $this->log('expire', null, $listingId, []);
-    }
-
-    public function cleanupExpired(): int {
-        $now = time();
-        $this->CI->db->where('status','active')->where('expires_at <', $now)->update('market_listings', ['status'=>'expired']);
-        return $this->CI->db->affected_rows();
-    }
-
-    private function guardFloor(int $ppu): void {
-        if ($ppu < $this->floor()) throw new Exception('Price below floor');
-    }
-    private function floor(): int { return (int)($this->cfg['min_price_floor'] ?? 1); }
-
-    private function guardDailyLimit(int $realmId, string $kind): void {
-        $since = strtotime('today 00:00:00');
-        if ($kind === 'sell') {
-            $count = $this->CI->db->where('type','listing')->where('realm_id',$realmId)->where('created_at >=', $since)->count_all_results('market_logs');
-            $max = (int)($this->cfg['max_daily_sell_listings'] ?? 50);
-            if ($count >= $max) throw new Exception('Daily sell listing limit reached');
-        } else {
-            $count = $this->CI->db->where('type','buy')->where('realm_id',$realmId)->where('created_at >=', $since)->count_all_results('market_logs');
-            $max = (int)($this->cfg['max_daily_buy_operations'] ?? 200);
-            if ($count >= $max) throw new Exception('Daily buy operation limit reached');
-        }
-    }
-
-    private function log(string $type, ?int $realmId, ?int $refId, $payload): void {
-        $this->CI->db->insert('market_logs', [
-            'type'=>$type,'realm_id'=>$realmId,'ref_id'=>$refId,
-            'payload'=>json_encode($payload, JSON_UNESCAPED_UNICODE),
-            'created_at'=>time()
+    public function buy(int $buyerRealmId, int $listingId): int {
+        $this->rateBump($buyerRealmId, 'buys');
+        $row = $this->CI->db->get_where('market_listings',['id'=>$listingId])->row_array();
+        if (!$row || (int)$row['status']!==0) throw new Exception('Listing not available');
+        if ((int)$row['seller_realm_id'] === $buyerRealmId) throw new Exception('Self trade not allowed');
+        $total = (int)$row['qty'] * (int)$row['price_per_unit'];
+        if (!$this->CI->wallet->spend($buyerRealmId, 'gold', $total, 'market_buy', 'market', $listingId)) throw new Exception('Buyer lacks gold');
+        // fee
+        $feeBps = (int)$row['tax_bps'];
+        $fee = (int)floor($total * $feeBps / 10000);
+        $sellerNet = max(0, $total - $fee);
+        // pagar al vendedor y devolver depósito
+        $this->CI->wallet->add((int)$row['seller_realm_id'], 'gold', $sellerNet, 'market_sale', 'market', $listingId);
+        if ((int)$row['deposit'] > 0) $this->CI->wallet->add((int)$row['seller_realm_id'], 'gold', (int)$row['deposit'], 'market_deposit_refund', 'market', $listingId);
+        // entregar items
+        $this->incInventory($buyerRealmId, $row['item_id'], (int)$row['qty']);
+        // registrar trade
+        $this->CI->db->insert('market_trades',[
+            'listing_id'=>$listingId,'item_id'=>$row['item_id'],'qty'=>$row['qty'],'price_per_unit'=>$row['price_per_unit'],
+            'total_price'=>$total,'tax_paid'=>$fee,'seller_realm_id'=>$row['seller_realm_id'],'buyer_realm_id'=>$buyerRealmId,'created_at'=>time()
         ]);
+        $tradeId = (int)$this->CI->db->insert_id();
+        $this->CI->db->update('market_listings',['status'=>1,'buyer_realm_id'=>$buyerRealmId,'trade_id'=>$tradeId],['id'=>$listingId]);
+        $this->CI->observability->inc('market.trade', ['item'=>$row['item_id']], 1);
+        return $tradeId;
+    }
+
+    public function expireOld(): int {
+        $now = time();
+        $rows = $this->CI->db->get_where('market_listings', ['status'=>0, 'expires_at <'=>$now])->result_array();
+        foreach ($rows as $r) {
+            $this->CI->db->update('market_listings',['status'=>3],['id'=>$r['id']]);
+            // devolver items pero NO depósito (se pierde)
+            $this->incInventory((int)$r['seller_realm_id'], $r['item_id'], (int)$r['qty']);
+        }
+        return count($rows);
     }
 }

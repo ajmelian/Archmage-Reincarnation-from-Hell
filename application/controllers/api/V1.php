@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService']);
         $this->load->config('performance');
     }
 
@@ -122,4 +122,85 @@ class V1 extends MY_ApiController {
     public function economy_params() {
         $rows = $this->db->order_by('key','ASC')->get('econ_params')->result_array();
         $this->json(['ok'=>true,'params'=>$rows]);
+    }
+
+
+
+    // GET /api/v1/market/listings?item=iron_ore&limit=50
+    public function market_listings() {
+        $item = $this->input->get('item', TRUE);
+        if ($item) $this->db->where('item_id',$item);
+        $limit = (int)$this->input->get('limit', TRUE) ?: 50;
+        $rows = $this->db->order_by('price_per_unit','ASC')->limit($limit)->get_where('market_listings',['status'=>0])->result_array();
+        $this->json(['ok'=>true,'listings'=>$rows]);
+    }
+
+    // POST /api/v1/market/list  (scopes: write)
+    public function market_list() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken, 'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $item = (string)$this->input->post('item_id', TRUE);
+        $qty  = (int)$this->input->post('qty', TRUE);
+        $ppu  = (int)$this->input->post('ppu', TRUE);
+        try {
+            $id = $this->marketservice->listItem((int)$realm['id'], $item, $qty, $ppu);
+            $this->json(['ok'=>true,'id'=>$id]);
+        } catch (Throwable $e) {
+            $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
+    }
+
+    // POST /api/v1/market/buy
+    public function market_buy() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $id = (int)$this->input->post('listing_id', TRUE);
+        try {
+            $tid = $this->marketservice->buy((int)$realm['id'], $id);
+            $this->json(['ok'=>true,'trade_id'=>$tid]);
+        } catch (Throwable $e) {
+            $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
+    }
+
+    // GET /api/v1/auctions/active?item=...&limit=50
+    public function auctions_active() {
+        $item = $this->input->get('item', TRUE);
+        if ($item) $this->db->where('item_id',$item);
+        $limit = (int)$this->input->get('limit', TRUE) ?: 50;
+        $rows = $this->db->order_by('ends_at','ASC')->limit($limit)->get_where('auctions',['status'=>0])->result_array();
+        $this->json(['ok'=>true,'auctions'=>$rows]);
+    }
+
+    // POST /api/v1/auctions/create (scopes: write)
+    public function auctions_create() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken, 'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $item = (string)$this->input->post('item_id', TRUE);
+        $qty  = (int)$this->input->post('qty', TRUE);
+        $start= (int)$this->input->post('start_price', TRUE);
+        $buy  = $this->input->post('buyout_price', TRUE); $buy = ($buy===''? null : (int)$buy);
+        $min  = (int)$this->input->post('minutes', TRUE);
+        try {
+            $id = $this->auctionservice->create((int)$realm['id'], $item, $qty, $start, $buy, $min);
+            $this->json(['ok'=>true,'id'=>$id]);
+        } catch (Throwable $e) {
+            $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
+    }
+
+    // POST /api/v1/auctions/bid
+    public function auctions_bid() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $id = (int)$this->input->post('auction_id', TRUE);
+        $amount = (int)$this->input->post('amount', TRUE);
+        try {
+            $this->auctionservice->bid((int)$realm['id'], $id, $amount);
+            $this->json(['ok'=>true]);
+        } catch (Throwable $e) {
+            $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
     }

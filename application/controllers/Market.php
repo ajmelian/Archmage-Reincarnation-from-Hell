@@ -4,48 +4,52 @@ class Market extends MY_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->database();
+        $this->load->library(['MarketService']);
         $this->load->helper(['url','form']);
-        $this->load->library('MarketService');
-        $this->load->config('market');
     }
 
-    private function currentRealmId(): ?int {
-        $uid = (int)$this->session->userdata('userId');
-        if (!$uid) return null;
-        $r = $this->db->get_where('realms', ['user_id'=>$uid])->row_array();
-        return $r ? (int)$r['id'] : null;
+    private function realmId(): int {
+        $u = (int)$this->session->userdata('userId');
+        if (!$u) redirect('auth/login');
+        $r = $this->db->get_where('realms',['user_id'=>$u])->row_array();
+        if (!$r) show_error('Realm not found', 404);
+        return (int)$r['id'];
     }
 
     public function index() {
-        $rid = $this->currentRealmId();
-        $q = $this->db->order_by('created_at','DESC')->limit(100)->get_where('market_listings', ['status'=>'active'])->result_array();
-        $mine = [];
-        if ($rid) $mine = $this->db->order_by('created_at','DESC')->limit(100)->get_where('market_listings', ['realm_id'=>$rid])->result_array();
-        $this->load->view('market/index', ['listings'=>$q,'mine'=>$mine,'cfg'=>$this->config->item('market'),'realmId'=>$rid]);
+        $item = $this->input->get('item', TRUE);
+        if ($item) $this->db->where('item_id',$item);
+        $rows = $this->db->order_by('price_per_unit','ASC')->get_where('market_listings',['status'=>0])->result_array();
+        $this->load->view('market/index', ['rows'=>$rows]);
     }
 
-    public function list_item() {
-        if ($this->input->method(TRUE) !== 'POST') show_404();
-        $rid = $this->currentRealmId(); if (!$rid) show_error('No realm', 403);
+    public function my() {
+        $rid = $this->realmId();
+        $rows = $this->db->order_by('created_at','DESC')->get_where('market_listings',['seller_realm_id'=>$rid])->result_array();
+        $inv = $this->db->get_where('inventory',['realm_id'=>$rid])->result_array();
+        $this->load->view('market/my', ['rows'=>$rows,'inv'=>$inv]);
+    }
+
+    public function create() {
+        $rid = $this->realmId();
+        if ($this->input->method(TRUE)==='GET') { $this->load->view('market/create'); return; }
         $item = (string)$this->input->post('item_id', TRUE);
         $qty  = (int)$this->input->post('qty', TRUE);
-        $ppu  = (int)$this->input->post('price_per_unit', TRUE);
+        $ppu  = (int)$this->input->post('ppu', TRUE);
         try {
-            $id = $this->marketservice->createListing($rid, $item, $qty, $ppu);
-            $this->session->set_flashdata('msg','Listing created: #'.$id);
+            $id = $this->marketservice->listItem($rid, $item, $qty, $ppu);
+            $this->session->set_flashdata('msg','Listado creado #'.$id);
         } catch (Throwable $e) {
             $this->session->set_flashdata('err',$e->getMessage());
         }
-        redirect('market');
+        redirect('market/my');
     }
 
     public function buy($id) {
-        if ($this->input->method(TRUE) !== 'POST') show_404();
-        $rid = $this->currentRealmId(); if (!$rid) show_error('No realm', 403);
-        $qty = (int)$this->input->post('qty', TRUE);
+        $rid = $this->realmId();
         try {
-            $res = $this->marketservice->buy($rid, (int)$id, $qty);
-            $this->session->set_flashdata('msg','Bought: '.$res['qty'].' units (pay='.$res['pay'].')');
+            $tradeId = $this->marketservice->buy($rid, (int)$id);
+            $this->session->set_flashdata('msg','Compra realizada (trade #'.$tradeId.')');
         } catch (Throwable $e) {
             $this->session->set_flashdata('err',$e->getMessage());
         }
@@ -53,13 +57,13 @@ class Market extends MY_Controller {
     }
 
     public function cancel($id) {
-        $rid = $this->currentRealmId(); if (!$rid) show_error('No realm', 403);
+        $rid = $this->realmId();
         try {
             $this->marketservice->cancel($rid, (int)$id);
-            $this->session->set_flashdata('msg','Listing canceled.');
+            $this->session->set_flashdata('msg','Listado cancelado');
         } catch (Throwable $e) {
             $this->session->set_flashdata('err',$e->getMessage());
         }
-        redirect('market');
+        redirect('market/my');
     }
 }
