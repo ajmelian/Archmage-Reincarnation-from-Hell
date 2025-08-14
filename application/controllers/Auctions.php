@@ -3,6 +3,7 @@
 class Auctions extends MY_Controller {
     public function __construct() {
         parent::__construct();
+        $this->load->library('ModerationService');
         $this->load->database();
         $this->load->library(['AuctionService']);
         $this->load->helper(['url','form']);
@@ -29,6 +30,9 @@ class Auctions extends MY_Controller {
     }
 
     public function create() {
+        // Moderation: mercado suspendido?
+        $ridCheck = $this->session->userdata('userId') ? ($this->db->get_where('realms',['user_id'=>(int)$this->session->userdata('userId')])->row_array()['id'] ?? null) : null;
+        if ($ridCheck && !$this->moderationservice->canTrade((int)$ridCheck)) { $this->session->set_flashdata('err','Mercado suspendido por moderación.'); redirect('market'); return; }
         $rid = $this->realmId();
         if ($this->input->method(TRUE)==='GET') { $this->load->view('auctions/create'); return; }
         $item = (string)$this->input->post('item_id', TRUE);
@@ -46,6 +50,8 @@ class Auctions extends MY_Controller {
     }
 
     public function bid($id) {
+        $ridCheck = $this->session->userdata('userId') ? ($this->db->get_where('realms',['user_id'=>(int)$this->session->userdata('userId')])->row_array()['id'] ?? null) : null;
+        if ($ridCheck && !$this->moderationservice->canTrade((int)$ridCheck)) { $this->session->set_flashdata('err','Subastas suspendidas por moderación.'); redirect('auctions/view/'.$id); return; }
         $rid = $this->realmId();
         $amount = (int)$this->input->post('amount', TRUE);
         try {

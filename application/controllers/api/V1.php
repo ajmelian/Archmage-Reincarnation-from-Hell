@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService','ModerationService','AuditLog']);
         $this->load->config('performance');
     }
 
@@ -283,4 +283,22 @@ class V1 extends MY_ApiController {
         $target = (int)$this->input->post('target_realm_id', TRUE);
         try { $this->allianceservice->kick((int)$realm['id'], $target); $this->json(['ok'=>true]); }
         catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+
+
+    // POST /api/v1/report
+    public function report() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $type = (string)$this->input->post('type', TRUE);
+        $reason = (string)$this->input->post('reason', TRUE);
+        $tType = (string)$this->input->post('target_type', TRUE);
+        $tId = (string)$this->input->post('target_id', TRUE);
+        try {
+            $id = $this->moderationservice->report((int)$realm['id'], $type, $reason, $tType ?: null, $tId ?: null);
+            $this->json(['ok'=>true,'id'=>$id]);
+        } catch (Throwable $e) {
+            $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
+        }
     }

@@ -156,3 +156,9 @@ $route['api/v1/alliance/leave'] = 'api/v1/alliance_leave';
 $route['api/v1/alliance/promote'] = 'api/v1/alliance_promote';
 $route['api/v1/alliance/demote'] = 'api/v1/alliance_demote';
 $route['api/v1/alliance/kick'] = 'api/v1/alliance_kick';
+
+$route['mod'] = 'mod/index';
+$route['mod/flag/(:num)'] = 'mod/flag/$1';
+$route['mod/resolve/(:num)'] = 'mod/resolve/$1';
+$route['mod/sanction'] = 'mod/sanction';
+$route['api/v1/report'] = 'api/v1/report';

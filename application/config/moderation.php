@@ -1,11 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 $config['moderation'] = [
-    'rate_limits' => [
-        'chat_post' => ['window_sec'=>10, 'max'=>5],
-        'dm_send'   => ['window_sec'=>60, 'max'=>10],
-    ],
-    'reject_on_badword' => true, // si false, reemplaza con ****
-    // lista adicional (además de DB) — útil para hotfix sin migración
-    'badwords' => ['troll','scam'],
+    'default_mute_minutes' => 60,
+    'default_market_suspension_minutes' => 120,
+    'max_mute_minutes' => 24*60,
+    'max_market_suspension_minutes' => 7*24*60,
+    'allow_user_reports' => true,
 ];

@@ -1,128 +1,75 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class ModerationService {
-
     public function __construct() {
         $this->CI =& get_instance();
         $this->CI->load->database();
         $this->CI->load->config('moderation');
+        $this->CI->load->library(['AuditLog','Observability']);
     }
 
-    public function isMuted(int $realmId, string $scope): bool {
-        $now = time();
-        $this->CI->db->where('realm_id', $realmId);
-        $this->CI->db->where_in('scope', [$scope, 'all']);
-        $this->CI->db->where('expires_at >', $now);
-        $row = $this->CI->db->get('moderation_mutes')->row_array();
-        return (bool)$row;
-    }
-
-    public function assertCanChat(int $realmId, string $channelType): void {
-        $scope = ($channelType==='alliance') ? 'chat_alliance' : 'chat_global';
-        if ($this->isMuted($realmId, $scope)) throw new Exception('Muted');
-    }
-
-    public function assertCanDM(int $realmId): void {
-        if ($this->isMuted($realmId, 'dm')) throw new Exception('Muted');
-    }
-
-    public function checkRate(int $realmId, string $action): void {
-        $cfg = $this->CI->config->item('moderation');
-        $rl = $cfg['rate_limits'][$action] ?? null;
-        if (!$rl) return;
-        $win = (int)$rl['window_sec'];
-        $max = (int)$rl['max'];
-        $now = time();
-        $ws = (int)floor($now / $win) * $win;
-        $key = ['realm_id'=>$realmId,'action'=>$action,'window_start'=>$ws];
-        $row = $this->CI->db->get_where('rate_counters',$key)->row_array();
-        if (!$row) {
-            $this->CI->db->insert('rate_counters', $key + ['count'=>1,'updated_at'=>$now]);
-            return;
-        }
-        if ((int)$row['count'] >= $max) throw new Exception('Rate limited');
-        $this->CI->db->set('count','count+1',FALSE)->set('updated_at',$now)->where($key)->update('rate_counters');
-    }
-
-    public function filterText(string $text): array {
-        $cfg = $this->CI->config->item('moderation');
-        $rej = (bool)($cfg['reject_on_badword'] ?? true);
-        $list = $cfg['badwords'] ?? [];
-        // DB words
-        $rows = $this->CI->db->get('moderation_badwords')->result_array();
-        foreach ($rows as $r) $list[] = $r['token'];
-        $bad = [];
-        foreach ($list as $w) {
-            if ($w==='' ) continue;
-            if (stripos($text, $w) !== false) $bad[] = $w;
-        }
-        if ($bad) {
-            if ($rej) return [false, 'Contenido no permitido'];
-            // mask
-            $masked = $text;
-            foreach ($bad as $w) {
-                $masked = preg_replace('/'+preg_quote($w, '/')+' /i', '****', $masked);
-            }
-            return [true, $masked];
-        }
-        return [true, $text];
-    }
-
-    public function block(int $blocker, int $blocked): void {
-        if ($blocker===$blocked) return;
-        $exists = $this->CI->db->get_where('moderation_blocks',['blocker_realm_id'=>$blocker,'blocked_realm_id'=>$blocked])->row_array();
-        if ($exists) return;
-        $this->CI->db->insert('moderation_blocks',['blocker_realm_id'=>$blocker,'blocked_realm_id'=>$blocked,'created_at'=>time()]);
-    }
-
-    public function unblock(int $blocker, int $blocked): void {
-        $this->CI->db->delete('moderation_blocks',['blocker_realm_id'=>$blocker,'blocked_realm_id'=>$blocked]);
-    }
-
-    public function isBlocked(int $blocker, int $blocked): bool {
-        $row = $this->CI->db->get_where('moderation_blocks',['blocker_realm_id'=>$blocker,'blocked_realm_id'=>$blocked])->row_array();
-        return (bool)$row;
-    }
-
-    // If target (recipient) has blocked sender, DM should be prevented
-    public function recipientBlocksSender(int $sender, int $recipient): bool {
-        return $this->isBlocked($recipient, $sender);
-    }
-
-    public function report(int $reporterRealmId, string $targetType, int $targetId, string $reason=''): int {
-        $this->CI->db->insert('moderation_reports',[
-            'reporter_realm_id'=>$reporterRealmId,'target_type'=>$targetType,'target_id'=>$targetId,
-            'reason'=>$reason ?: null,'status'=>'open','created_at'=>time()
+    public function report(int $reporterRealmId, string $type, string $reason, ?string $targetType=null, ?string $targetId=null): int {
+        if (!($this->CI->config->item('moderation')['allow_user_reports'] ?? true)) throw new Exception('Reports disabled');
+        $this->CI->db->insert('mod_flags',[
+            'reporter_realm_id'=>$reporterRealmId, 'type'=>$type, 'reason'=>$reason,
+            'target_type'=>$targetType,'target_id'=>$targetId,
+            'status'=>'pending','created_at'=>time()
         ]);
-        return (int)$this->CI->db->insert_id();
+        $id = (int)$this->CI->db->insert_id();
+        $this->CI->auditlog->add('report.create','mod_flag',$id,['type'=>$type]);
+        $this->CI->observability->inc('mod.report', ['type'=>$type], 1);
+        return $id;
     }
 
-    // GM helpers via CLI or admin controller
-    public function gmMute(int $realmId, string $scope, int $minutes, string $reason=''): int {
-        $until = time() + max(1,$minutes)*60;
-        $this->CI->db->insert('moderation_mutes',[
-            'realm_id'=>$realmId,'scope'=>$scope,'reason'=>$reason ?: null,'expires_at'=>$until,'created_at'=>time()
-        ]);
-        return (int)$this->CI->db->insert_id();
-    }
-    public function gmUnmute(int $muteId): void {
-        $this->CI->db->delete('moderation_mutes',['id'=>$muteId]);
-    }
-    public function gmListReports(string $status='open', int $limit=100): array {
-        return $this->CI->db->order_by('created_at','DESC')->limit($limit)->get_where('moderation_reports',['status'=>$status])->result_array();
-    }
-    public function gmResolveReport(int $id, string $resolution, string $status='resolved'): void {
-        $this->CI->db->update('moderation_reports',['status'=>$status,'resolution'=>$resolution,'resolved_at'=>time()],[ 'id'=>$id ]);
+    public function flags($status='pending', $limit=100): array {
+        return $this->CI->db->order_by('created_at','DESC')->limit($limit)->get_where('mod_flags',['status'=>$status])->result_array();
     }
 
-    public function cleanup(): array {
+    public function resolve(int $modUserId, int $flagId, string $resolution, bool $reject=false): void {
         $now = time();
-        $this->CI->db->where('expires_at <', $now)->delete('moderation_mutes');
-        $m = $this->CI->db->affected_rows();
-        // rate counters older than 1 day
-        $limit = $now - 86400;
-        $this->CI->db->where('updated_at <', $limit)->delete('rate_counters');
-        $r = $this->CI->db->affected_rows();
-        return ['mutes_deleted'=>$m, 'rate_deleted'=>$r];
+        $this->CI->db->update('mod_flags',[
+            'status'=>$reject?'rejected':'resolved', 'mod_user_id'=>$modUserId, 'resolution'=>$resolution, 'resolved_at'=>$now
+        ], ['id'=>$flagId]);
+        $this->CI->auditlog->add('report.resolve','mod_flag',$flagId,['resolution'=>$resolution,'reject'=>$reject]);
     }
+
+    public function sanction(int $modUserId, int $targetRealmId, string $action, int $minutes, string $reason, array $meta=[]): int {
+        $maxMap = [
+            'mute_chat' => (int)($this->CI->config->item('moderation')['max_mute_minutes'] ?? 1440),
+            'suspend_market' => (int)($this->CI->config->item('moderation')['max_market_suspension_minutes'] ?? 10080),
+            'ban_arena' => 7*24*60,
+            'warn' => 0,
+        ];
+        $minutes = max(0, min($minutes, $maxMap[$action] ?? $minutes));
+        $exp = $minutes>0 ? time()+$minutes*60 : null;
+        $this->CI->db->insert('mod_actions',[
+            'mod_user_id'=>$modUserId,'target_realm_id'=>$targetRealmId,'action'=>$action,
+            'reason'=>$reason,'created_at'=>time(),'expires_at'=>$exp,'meta'=>json_encode($meta, JSON_UNESCAPED_UNICODE),
+        ]);
+        $id = (int)$this->CI->db->insert_id();
+        $this->CI->auditlog->add('sanction.apply','mod_action',$id,['action'=>$action,'minutes'=>$minutes,'reason'=>$reason]);
+        return $id;
+    }
+
+    public function activeSanctions(int $realmId): array {
+        $now = time();
+        $rows = $this->CI->db->where('target_realm_id',$realmId)
+            ->where('(expires_at IS NULL OR expires_at >= '.$now.')', null, false)
+            ->get('mod_actions')->result_array();
+        $out = ['mute_chat'=>False,'suspend_market'=>False,'ban_arena'=>False];
+        foreach ($rows as $r) {
+            if (isset($out[$r['action']])) $out[$r['action']] = true;
+        }
+        return $out;
+    }
+
+    public function expire(): int {
+        $now = time();
+        // nada que hacer, se evalúa en consulta
+        $n = $this->CI->db->where('expires_at IS NOT NULL', null, false)->where('expires_at <', $now)->count_all_results('mod_actions');
+        return $n;
+    }
+
+    public function isMutedChat(int $realmId): bool { return $this->activeSanctions($realmId)['mute_chat'] ?? false; }
+    public function canTrade(int $realmId): bool { return !($this->activeSanctions($realmId)['suspend_market'] ?? false); }
 }
