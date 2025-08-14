@@ -139,6 +139,53 @@
       </div>
     </div>
   </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6"><?php echo $this->lang->line('order_spell_research'); ?></h2>
+        <form id="formSpellResearch" class="row row-cols-lg-auto g-2 align-items-center">
+          <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
+          <input type="hidden" name="type" value="spell_research">
+          <div class="col-12">
+            <label class="form-label"><?php echo $this->lang->line('spell'); ?></label>
+            <select name="spellId" class="form-select form-select-sm">
+              <?php foreach ($spells as $s): ?>
+                <option value="<?php echo html_escape($s['id']); ?>"><?php echo html_escape($s['name']); ?> (<?php echo (int)$s['research_cost']; ?> RP)</option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-12"><button class="btn btn-primary btn-sm" type="button" onclick="submitOrder('formSpellResearch')"><?php echo $this->lang->line('submit'); ?></button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6"><?php echo $this->lang->line('order_spell_cast'); ?></h2>
+        <form id="formSpellCast" class="row row-cols-lg-auto g-2 align-items-center">
+          <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
+          <input type="hidden" name="type" value="spell_cast">
+          <div class="col-12">
+            <label class="form-label"><?php echo $this->lang->line('spell'); ?></label>
+            <select name="spellId" class="form-select form-select-sm">
+              <?php foreach ($spells as $s): ?>
+                <option value="<?php echo html_escape($s['id']); ?>"><?php echo html_escape($s['name']); ?> (<?php echo (int)$s['mana_cost']; ?> MP)</option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label"><?php echo $this->lang->line('target_realm'); ?></label>
+            <input class="form-control form-control-sm" type="number" min="1" step="1" name="targetRealmId" value="1">
+          </div>
+          <div class="col-12"><button class="btn btn-warning btn-sm" type="button" onclick="submitOrder('formSpellCast')"><?php echo $this->lang->line('cast'); ?></button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="mt-3" id="orderMsg" class="small"></div>

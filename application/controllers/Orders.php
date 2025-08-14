@@ -31,6 +31,15 @@ class Orders extends CI_Controller {
             case 'attack':
                 $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
                 break;
+            case 'spell_research':
+                $payload['spellId'] = $this->input->post('spellId', TRUE);
+                break;
+            case 'spell_cast':
+                $payload['spellId'] = $this->input->post('spellId', TRUE);
+                $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
+                break;
+                $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
+                break;
             default:
                 echo json_encode(['ok'=>false,'error'=>'Unknown order']); return;
         }

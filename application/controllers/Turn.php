@@ -4,8 +4,8 @@ class Turn extends CI_Controller {
     public function __construct() {
         parent::__construct();
         if (!is_cli()) show_404();
-        $this->load->library(['Engine','EngineExt']);
-        $this->load->model(['Realm_model','Unit_model','Building_model','Research_model']);
+        $this->load->library(['Engine','EngineExt','EngineSpells']);
+        $this->load->model(['Realm_model','Unit_model','Building_model','Research_model','Spell_model']);
         $this->load->database();
     }
 
@@ -84,6 +84,52 @@ class Turn extends CI_Controller {
                 }
             }
 
+            
+            // Hechizos: investigación
+            foreach ($list as $o) {
+                $payload = json_decode($o['payload'], true) ?: [];
+                if (($payload['type'] ?? '') === 'spell_research') {
+                    $sid = (string)($payload['spellId'] ?? '');
+                    $defs = $this->Spell_model->mapById();
+                    if (isset($defs[$sid])) {
+                        $msg = EngineSpells::researchSpell($state, $defs[$sid]);
+                        $this->markApplied($o['id']);
+                    } else {
+                        $this->markRejected($o['id'], 'Unknown spell');
+                    }
+                }
+            }
+
+            // Hechizos: lanzamiento
+            foreach ($list as $o) {
+                $payload = json_decode($o['payload'], true) ?: [];
+                if (($payload['type'] ?? '') === 'spell_cast') {
+                    $sid = (string)($payload['spellId'] ?? '');
+                    $targetId = (int)($payload['targetRealmId'] ?? 0);
+                    $defs = $this->Spell_model->mapById();
+                    $target = $this->db->get_where('realms', ['id'=>$targetId])->row_array();
+                    if ($target && isset($defs[$sid])) {
+                        $stateTarget = $this->Realm_model->loadState($target);
+                        $msg = EngineSpells::castSpell($state, $stateTarget, $defs[$sid], $tick);
+                        $this->Realm_model->saveState((int)$target['id'], $stateTarget);
+                        $this->db->insert('spell_logs', [
+                            'tick'=>$tick,
+                            'caster_realm_id'=>$realm['id'],
+                            'target_realm_id'=>$target['id'],
+                            'spell_id'=>$sid,
+                            'log'=>$msg,
+                            'created_at'=>time()
+                        ]);
+                        $this->markApplied($o['id']);
+                    } else {
+                        $this->markRejected($o['id'], 'Spell cast target/def not found');
+                    }
+                }
+            }
+
+            // Limpieza de efectos expirados
+            EngineSpells::cleanupEffects($state, $tick);
+
             // Cuarto: attack
             foreach ($list as $o) {
                 $payload = json_decode($o['payload'], true) ?: [];
@@ -107,7 +153,21 @@ class Turn extends CI_Controller {
                         }
 
                         $seed = crc32($tick.'-'.$realm['id'].'-'.$target['id']);
-                        $result = $this->engine->resolveCombat($sideA, $sideB, $seed);
+                        $modsA = EngineSpells::activeModifiers($stateA, $tick);
+$modsB = EngineSpells::activeModifiers($stateB, $tick);
+// Apply research bonuses too
+$rbA = EngineExt::researchBonuses($stateA, $researchDefs);
+$rbB = EngineExt::researchBonuses($stateB, $researchDefs);
+$attackMultA = 1.0 + ($modsA['attack_bonus'] + ($rbA['attack_bonus'] ?? 0));
+$defenseMultA = 1.0 + ($modsA['defense_bonus'] + ($rbA['defense_bonus'] ?? 0));
+$attackMultB = 1.0 + ($modsB['attack_bonus'] + ($rbB['attack_bonus'] ?? 0));
+$defenseMultB = 1.0 + ($modsB['defense_bonus'] + ($rbB['defense_bonus'] ?? 0));
+
+foreach ($sideA as &$u) { $u['attack'] = (int)round($u['attack'] * $attackMultA); $u['defense'] = (int)round($u['defense'] * $defenseMultA); }
+foreach ($sideB as &$u) { $u['attack'] = (int)round($u['attack'] * $attackMultB); $u['defense'] = (int)round($u['defense'] * $defenseMultB); }
+unset($u);
+
+$result = $this->engine->resolveCombat($sideA, $sideB, $seed);
 
                         // Aplicar pérdidas
                         foreach ($result['lossesA'] as $uid=>$lost) {

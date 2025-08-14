@@ -3,7 +3,7 @@
 class Game extends MY_Controller {
     public function __construct() {
         parent::__construct();
-        $this->load->model(['Realm_model','Building_model','Unit_model','Research_model']);
+        $this->load->model(['Realm_model','Building_model','Unit_model','Research_model','Spell_model']);
     }
 
     public function index() {
@@ -21,7 +21,8 @@ class Game extends MY_Controller {
             'state' => $state,
             'buildings' => $buildings,
             'units' => $units,
-            'research' => $research
+            'research' => $research,
+            'spells' => $this->Spell_model->all()
         ];
         $this->render('game/index', $data);
     }

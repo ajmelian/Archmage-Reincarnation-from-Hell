@@ -2,8 +2,17 @@
 
 class MY_Controller extends CI_Controller {
     protected string $langCode = 'es';
+    protected bool $requireLogin = TRUE;
+
+    protected string $langCode = 'es';
 
     public function __construct() {
+        parent::__construct();
+        // Auth gate
+        if ($this->requireLogin && !$this->session->userdata('userId')) {
+            redirect('auth/login');
+        }        
+
         parent::__construct();
         $this->langCode = $this->session->userdata('lang') ?: 'es';
     }

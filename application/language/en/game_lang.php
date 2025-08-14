@@ -20,3 +20,11 @@ $lang['unit'] = 'Unit';
 $lang['quantity'] = 'Quantity';
 $lang['target_realm'] = 'Target realm';
 $lang['attack'] = 'Attack';
+
+$lang['invalid_credentials'] = 'Invalid credentials';
+$lang['invalid_register'] = 'Invalid registration data or passwords do not match';
+$lang['email_exists'] = 'Email already exists';
+$lang['order_spell_research'] = 'Research spell';
+$lang['order_spell_cast'] = 'Cast spell';
+$lang['spell'] = 'Spell';
+$lang['cast'] = 'Cast';
