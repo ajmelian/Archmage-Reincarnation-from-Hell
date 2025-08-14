@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService']);
         $this->load->config('performance');
     }
 
@@ -203,4 +203,84 @@ class V1 extends MY_ApiController {
         } catch (Throwable $e) {
             $this->json(['ok'=>false,'error'=>$e->getMessage()], 400);
         }
+    }
+
+
+
+    // GET /api/v1/alliance/me
+    public function alliance_me() {
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $a = $this->allianceservice->allianceOfRealm((int)$realm['id']);
+        if (!$a) $this->json(['ok'=>true,'alliance'=>null]);
+        $members = $this->allianceservice->members((int)$a['id']);
+        $this->json(['ok'=>true,'alliance'=>$a,'members'=>$members,'chat_channel'=>$this->allianceservice->chatChannelId((int)$a['id'])]);
+    }
+
+    // POST /api/v1/alliance/create
+    public function alliance_create() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken,'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $name = (string)$this->input->post('name', TRUE);
+        $tag = (string)$this->input->post('tag', TRUE);
+        $desc = (string)$this->input->post('description', TRUE);
+        try { $id = $this->allianceservice->create((int)$realm['id'],$name,$tag,$desc); $this->json(['ok'=>true,'id'=>$id]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/invite
+    public function alliance_invite() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken,'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $to = (int)$this->input->post('to_realm_id', TRUE);
+        try { $id = $this->allianceservice->invite((int)$realm['id'], $to); $this->json(['ok'=>true,'invite_id'=>$id]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/accept
+    public function alliance_accept() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $inv = (int)$this->input->post('invite_id', TRUE);
+        try { $this->allianceservice->accept((int)$realm['id'], $inv); $this->json(['ok'=>true]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/leave
+    public function alliance_leave() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        try { $this->allianceservice->leave((int)$realm['id']); $this->json(['ok'=>true]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/promote
+    public function alliance_promote() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken,'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $target = (int)$this->input->post('target_realm_id', TRUE);
+        try { $this->allianceservice->promote((int)$realm['id'], $target); $this->json(['ok'=>true]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/demote
+    public function alliance_demote() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken,'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $target = (int)$this->input->post('target_realm_id', TRUE);
+        try { $this->allianceservice->demote((int)$realm['id'], $target); $this->json(['ok'=>true]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
+    }
+
+    // POST /api/v1/alliance/kick
+    public function alliance_kick() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $this->apiauth->enforceScope($this->apiToken,'write');
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $target = (int)$this->input->post('target_realm_id', TRUE);
+        try { $this->allianceservice->kick((int)$realm['id'], $target); $this->json(['ok'=>true]); }
+        catch (Throwable $e) { $this->json(['ok'=>false,'error'=>$e->getMessage()], 400); }
     }

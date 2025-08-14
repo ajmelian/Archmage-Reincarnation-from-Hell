@@ -1,189 +1,170 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class AllianceService {
-
     public function __construct() {
         $this->CI =& get_instance();
         $this->CI->load->database();
-        $this->CI->load->library('Wallet');
+        $this->CI->load->library(['Observability']);
+        $this->CI->load->helper('security');
     }
 
-    public function create(int $leaderRealmId, string $name, string $tag, string $desc=''): int {
-        $now = time();
-        $this->CI->db->insert('alliances', [
-            'name'=>$name,'tag'=>$tag,'description'=>$desc,'leader_realm_id'=>$leaderRealmId,'created_at'=>$now
-        ]);
+    public function getRealm(int $userId) {
+        return $this->CI->db->get_where('realms',['user_id'=>$userId])->row_array();
+    }
+
+    public function allianceOfRealm(int $realmId) {
+        $r = $this->CI->db->select('a.*')->from('alliances a')->join('realms r','r.alliance_id=a.id','inner')->where('r.id',$realmId)->get()->row_array();
+        return $r ?: null;
+    }
+
+    public function myAllianceWithRole(int $realmId) {
+        $row = $this->CI->db->get_where('realms',['id'=>$realmId])->row_array();
+        if (!$row || empty($row['alliance_id'])) return [null, null];
+        $a = $this->CI->db->get_where('alliances',['id'=>(int)$row['alliance_id']])->row_array();
+        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$realmId])->row_array();
+        return [$a, $m ? $m['role'] : null];
+    }
+
+    public function create(int $realmId, string $name, string $tag, string $description=''): int {
+        $name = trim($name); $tag = trim($tag);
+        if ($name==='' || $tag==='') throw new Exception('Name/tag required');
+        if ($this->CI->db->get_where('alliances',['name'=>$name])->row_array()) throw new Exception('Name taken');
+        if ($this->CI->db->get_where('alliances',['tag'=>$tag])->row_array()) throw new Exception('Tag taken');
+        $this->CI->db->trans_start();
+        $this->CI->db->insert('alliances',['name'=>$name,'tag'=>$tag,'description'=>$description,'created_at'=>time()]);
         $aid = (int)$this->CI->db->insert_id();
-        $this->CI->db->insert('alliance_members', [
-            'alliance_id'=>$aid,'realm_id'=>$leaderRealmId,'role'=>'leader','joined_at'=>$now
-        ]);
-        $this->CI->db->insert('alliance_bank', ['alliance_id'=>$aid,'gold'=>0,'mana'=>0,'updated_at'=>$now]);
-        $this->log($aid, 'create', $leaderRealmId, ['name'=>$name,'tag'=>$tag]);
+        $this->CI->db->insert('alliance_members',['alliance_id'=>$aid,'realm_id'=>$realmId,'role'=>'leader','joined_at'=>time()]);
+        $this->CI->db->update('realms',['alliance_id'=>$aid],['id'=>$realmId]);
+        $this->log($aid, 'create', ['leader_realm_id'=>$realmId]);
+        $this->CI->db->trans_complete();
+        if (!$this->CI->db->trans_status()) throw new Exception('DB error');
         return $aid;
     }
 
-    public function getAlliance(?int $allianceId): ?array {
-        if (!$allianceId) return null;
-        $a = $this->CI->db->get_where('alliances', ['id'=>$allianceId])->row_array();
-        if (!$a) return null;
-        $a['members'] = $this->CI->db->order_by('role','DESC')->get_where('alliance_members',['alliance_id'=>$a['id']])->result_array();
-        $a['bank'] = $this->CI->db->get_where('alliance_bank',['alliance_id'=>$a['id']])->row_array();
-        return $a;
-    }
-
-    public function realmAllianceId(int $realmId): ?int {
-        $m = $this->CI->db->get_where('alliance_members', ['realm_id'=>$realmId])->row_array();
-        return $m ? (int)$m['alliance_id'] : null;
-    }
-
-    public function role(int $allianceId, int $realmId): ?string {
-        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$allianceId,'realm_id'=>$realmId])->row_array();
-        return $m ? (string)$m['role'] : null;
-    }
-
-    public function invite(int $actorRealmId, int $allianceId, int $toRealmId): int {
-        $role = $this->role($allianceId, $actorRealmId);
-        if (!in_array($role, ['leader','officer'], true)) throw new Exception('Insufficient role');
-        $now = time();
-        $exp = $now + 7*24*3600;
-        $this->CI->db->insert('alliance_invites', [
-            'alliance_id'=>$allianceId,'from_realm_id'=>$actorRealmId,'to_realm_id'=>$toRealmId,
-            'status'=>'pending','created_at'=>$now,'expires_at'=>$exp
+    public function invite(int $fromRealmId, int $toRealmId): int {
+        [$a,$role] = $this->myAllianceWithRole($fromRealmId);
+        if (!$a || !in_array($role, ['leader','officer'])) throw new Exception('Not allowed');
+        $r = $this->CI->db->get_where('realms',['id'=>$toRealmId])->row_array();
+        if (!$r) throw new Exception('Target realm not found');
+        if (!empty($r['alliance_id'])) throw new Exception('Target already in alliance');
+        $exp = time()+3*24*3600; // 3 días
+        $this->CI->db->insert('alliance_invites',[
+            'alliance_id'=>$a['id'],'from_realm_id'=>$fromRealmId,'to_realm_id'=>$toRealmId,'created_at'=>time(),'expires_at'=>$exp,'status'=>'pending'
         ]);
         $id = (int)$this->CI->db->insert_id();
-        $this->log($allianceId, 'invite', $actorRealmId, ['to'=>$toRealmId,'invite_id'=>$id]);
+        $this->log($a['id'],'invite',['from'=>$fromRealmId,'to'=>$toRealmId,'invite_id'=>$id]);
         return $id;
     }
 
-    public function acceptInvite(int $realmId, int $inviteId): void {
-        $inv = $this->CI->db->get_where('alliance_invites',['id'=>$inviteId])->row_array();
-        if (!$inv || (int)$inv['to_realm_id'] !== $realmId) throw new Exception('Invite not found');
-        if ($inv['status']!=='pending' || $inv['expires_at']<time()) throw new Exception('Invite not valid');
-        $aid = (int)$inv['alliance_id'];
-        // leave current alliance if any
-        $this->leaveCurrent($realmId);
-        // join
-        $this->CI->db->insert('alliance_members', ['alliance_id'=>$aid,'realm_id'=>$realmId,'role'=>'member','joined_at'=>time()]);
-        $this->CI->db->where('id', $inviteId)->update('alliance_invites', ['status'=>'accepted']);
-        $this->log($aid, 'join', $realmId, []);
+    public function revokeInvite(int $fromRealmId, int $inviteId): void {
+        [$a,$role] = $this->myAllianceWithRole($fromRealmId);
+        if (!$a || !in_array($role, ['leader','officer'])) throw new Exception('Not allowed');
+        $i = $this->CI->db->get_where('alliance_invites',['id'=>$inviteId,'alliance_id'=>$a['id']])->row_array();
+        if (!$i || $i['status']!=='pending') throw new Exception('Invite not pending');
+        $this->CI->db->update('alliance_invites',['status'=>'revoked'],['id'=>$inviteId]);
+        $this->log($a['id'],'invite_revoked',['invite_id'=>$inviteId]);
+    }
+
+    public function myInvites(int $realmId): array {
+        $now = time();
+        // expire
+        $this->CI->db->set('status','expired')->where(['status'=>'pending'])->where('expires_at IS NOT NULL', NULL, FALSE)->where('expires_at <', $now)->update('alliance_invites');
+        return $this->CI->db->order_by('created_at','DESC')->get_where('alliance_invites',['to_realm_id'=>$realmId,'status'=>'pending'])->result_array();
+    }
+
+    public function accept(int $realmId, int $inviteId): void {
+        $inv = $this->CI->db->get_where('alliance_invites',['id'=>$inviteId,'to_realm_id'=>$realmId,'status'=>'pending'])->row_array();
+        if (!$inv) throw new Exception('Invite not found');
+        $a = $this->CI->db->get_where('alliances',['id'=>$inv['alliance_id']])->row_array();
+        if (!$a) throw new Exception('Alliance not found');
+        $r = $this->CI->db->get_where('realms',['id'=>$realmId])->row_array();
+        if (!$r) throw new Exception('Realm not found');
+        if (!empty($r['alliance_id'])) throw new Exception('Already in alliance');
+        $this->CI->db->trans_start();
+        $this->CI->db->update('alliance_invites',['status'=>'accepted'],['id'=>$inviteId]);
+        $this->CI->db->insert('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$realmId,'role'=>'member','joined_at'=>time()]);
+        $this->CI->db->update('realms',['alliance_id'=>$a['id']],['id'=>$realmId]);
+        $this->log($a['id'],'join',['realm_id'=>$realmId]);
+        $this->CI->db->trans_complete();
+        if (!$this->CI->db->trans_status()) throw new Exception('DB error');
     }
 
     public function leave(int $realmId): void {
-        $aid = $this->realmAllianceId($realmId);
-        if (!$aid) return;
-        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$aid,'realm_id'=>$realmId])->row_array();
-        if (!$m) return;
-        if ($m['role']==='leader') {
-            // ensure there is another leader or disband?
-            $others = $this->CI->db->where('alliance_id',$aid)->where('realm_id !=',$realmId)->count_all_results('alliance_members');
-            if ($others>0) {
-                // promote first officer or member to leader
-                $cand = $this->CI->db->order_by("FIELD(role,'officer','member')", '', FALSE)->limit(1)->get_where('alliance_members',['alliance_id'=>$aid,'realm_id !='=>$realmId])->row_array();
-                if ($cand) $this->CI->db->where('id',$cand['id'])->update('alliance_members',['role'=>'leader']);
-                $this->CI->db->where('id',$aid)->update('alliances',['leader_realm_id'=>$cand ? $cand['realm_id'] : null]);
-            } else {
-                // disband alliance
-                $this->CI->db->delete('alliances',['id'=>$aid]);
-                $this->CI->db->delete('alliance_members',['alliance_id'=>$aid]);
-                $this->CI->db->delete('alliance_bank',['alliance_id'=>$aid]);
-                $this->log($aid, 'disband', $realmId, []);
-            }
+        [$a,$role] = $this->myAllianceWithRole($realmId);
+        if (!$a) throw new Exception('Not in alliance');
+        // Si es líder y hay otros miembros, bloquear salida
+        if ($role==='leader') {
+            $count = $this->CI->db->where(['alliance_id'=>$a['id']])->count_all_results('alliance_members');
+            if ($count>1) throw new Exception('Leader must transfer or disband');
         }
-        $this->CI->db->delete('alliance_members',['id'=>$m['id']]);
-        $this->log($aid, 'leave', $realmId, []);
-    }
-
-    private function leaveCurrent(int $realmId): void {
-        $m = $this->CI->db->get_where('alliance_members',['realm_id'=>$realmId])->row_array();
-        if ($m) $this->leave($realmId);
-    }
-
-    public function promote(int $actorRealmId, int $realmId, string $toRole): void {
-        $aid = $this->realmAllianceId($actorRealmId);
-        if (!$aid) throw new Exception('No alliance');
-        $role = $this->role($aid, $actorRealmId);
-        if ($role!=='leader') throw new Exception('Only leader can set roles');
-        if (!in_array($toRole, ['member','officer','leader'], true)) throw new Exception('Invalid role');
-        $m = $this->CI->db->get_where('alliance_members', ['alliance_id'=>$aid,'realm_id'=>$realmId])->row_array();
-        if (!$m) throw new Exception('Target not in your alliance');
-        $this->CI->db->where('id',$m['id'])->update('alliance_members',['role'=>$toRole]);
-        if ($toRole==='leader') $this->CI->db->where('id',$aid)->update('alliances',['leader_realm_id'=>$realmId]);
-        $this->log($aid, 'promote', $actorRealmId, ['target'=>$realmId,'role'=>$toRole]);
-    }
-
-    public function bankDeposit(int $allianceId, int $realmId, string $res, int $amount): void {
-        $this->guardMember($allianceId, $realmId);
-        $row = $this->CI->db->get_where('alliance_bank',['alliance_id'=>$allianceId])->row_array();
-        if (!$row) { $this->CI->db->insert('alliance_bank',['alliance_id'=>$allianceId,'gold'=>0,'mana'=>0,'updated_at'=>time()]); $row=['gold'=>0,'mana'=>0]; }
-        $col = ($res==='mana') ? 'mana' : 'gold';
-        $this->CI->db->set($col, "$col+$amount", FALSE)->set('updated_at', time())->where('alliance_id',$allianceId)->update('alliance_bank');
-        $this->log($allianceId, 'bank', $realmId, ['op'=>'deposit','res'=>$col,'amount'=>$amount]);
-        $this->CI->wallet->spend($realmId, $col, $amount, 'ally_bank_deposit', 'alliance', $allianceId);
-    }
-
-    public function bankWithdraw(int $allianceId, int $actorRealmId, string $res, int $amount): void {
-        $role = $this->role($allianceId, $actorRealmId);
-        if (!in_array($role, ['leader','officer'], true)) throw new Exception('Officers or leader only');
-        $col = ($res==='mana') ? 'mana' : 'gold';
-        $this->CI->db->set($col, "$col-$amount", FALSE)->set('updated_at', time())->where('alliance_id',$allianceId)->update('alliance_bank');
-        $this->log($allianceId, 'bank', $actorRealmId, ['op'=>'withdraw','res'=>$col,'amount'=>$amount]);
-        $this->CI->wallet->add($actorRealmId, $col, $amount, 'ally_bank_withdraw', 'alliance', $allianceId);
-    }
-
-    // Diplomacy
-    public function setState(int $actorRealmId, int $a1, int $a2, string $state, array $terms=[]): int {
-        $aid = $this->realmAllianceId($actorRealmId);
-        if ($aid !== $a1) throw new Exception('Actor not in alliance A1');
-        $role = $this->role($a1, $actorRealmId);
-        if (!in_array($role, ['leader','officer'], true)) throw new Exception('Insufficient role');
-        if (!in_array($state, ['neutral','nap','allied','war'], true)) throw new Exception('Invalid state');
-
-        $pair = $this->fetchDiplo($a1,$a2);
-        $now = time();
-        if ($pair) {
-            $this->CI->db->where('id',$pair['id'])->update('diplomacy',[
-                'state'=>$state,'started_at'=>$now,'ends_at'=>null,
-                'terms'=>json_encode($terms, JSON_UNESCAPED_UNICODE),
-                'last_changed_by'=>$actorRealmId
-            ]);
-            $id = (int)$pair['id'];
+        $this->CI->db->trans_start();
+        $this->CI->db->delete('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$realmId]);
+        $this->CI->db->update('realms',['alliance_id'=>NULL],['id'=>$realmId]);
+        // disband if last member
+        $count = $this->CI->db->where(['alliance_id'=>$a['id']])->count_all_results('alliance_members');
+        if ($count===0) {
+            $this->CI->db->delete('alliances',['id'=>$a['id']]);
+            $this->log($a['id'],'disband',[]);
         } else {
-            $this->CI->db->insert('diplomacy',[
-                'a1_id'=>$a1,'a2_id'=>$a2,'state'=>$state,'started_at'=>$now,'terms'=>json_encode($terms, JSON_UNESCAPED_UNICODE),'last_changed_by'=>$actorRealmId
-            ]);
-            $id = (int)$this->CI->db->insert_id();
+            $this->log($a['id'],'leave',['realm_id'=>$realmId]);
         }
-        $this->log($a1, 'diplomacy', $actorRealmId, ['with'=>$a2,'state'=>$state,'terms'=>$terms]);
-        $this->log($a2, 'diplomacy', $actorRealmId, ['with'=>$a1,'state'=>$state,'terms'=>$terms]);
-        return $id;
+        $this->CI->db->trans_complete();
     }
 
-    public function addWarScore(int $diploId, string $side, int $delta, array $event=[]): void {
-        $d = $this->CI->db->get_where('diplomacy',['id'=>$diploId])->row_array();
-        if (!$d || $d['state']!=='war') throw new Exception('Not a war');
-        $a = (int)$d['a1_id']; $b = (int)$d['a2_id'];
-        if ($side==='A') $this->CI->db->set('war_score_a', 'war_score_a+'.$delta, FALSE)->where('id',$diploId)->update('diplomacy');
-        else $this->CI->db->set('war_score_b', 'war_score_b+'.$delta, FALSE)->where('id',$diploId)->update('diplomacy');
-        $this->CI->db->insert('war_events', [
-            'diplo_id'=>$diploId,'event_type'=>$event['type'] ?? 'score_adjust',
-            'payload'=>json_encode($event ?: ['delta'=>$delta,'side'=>$side], JSON_UNESCAPED_UNICODE),'created_at'=>time()
-        ]);
+    public function promote(int $byRealmId, int $targetRealmId): void {
+        [$a,$role] = $this->myAllianceWithRole($byRealmId);
+        if (!$a || !in_array($role, ['leader'])) throw new Exception('Only leader can promote');
+        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$targetRealmId])->row_array();
+        if (!$m) throw new Exception('Not in alliance');
+        if ($m['role']==='officer') return;
+        $this->CI->db->update('alliance_members',['role'=>'officer'],['id'=>$m['id']]);
+        $this->log($a['id'],'promote',['target'=>$targetRealmId]);
     }
 
-    public function fetchDiplo(int $a1, int $a2): ?array {
-        $pair = $this->CI->db->get_where('diplomacy', ['a1_id'=>min($a1,$a2),'a2_id'=>max($a1,$a2)])->row_array();
-        return $pair ?: null;
+    public function demote(int $byRealmId, int $targetRealmId): void {
+        [$a,$role] = $this->myAllianceWithRole($byRealmId);
+        if (!$a || !in_array($role, ['leader'])) throw new Exception('Only leader can demote');
+        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$targetRealmId])->row_array();
+        if (!$m) throw new Exception('Not in alliance');
+        if ($m['role']==='member') return;
+        // no permitir degradarse a sí mismo si queda sin líder
+        $this->CI->db->update('alliance_members',['role'=>'member'],['id'=>$m['id']]);
+        $this->log($a['id'],'demote',['target'=>$targetRealmId]);
     }
 
-    private function guardMember(int $allianceId, int $realmId): void {
-        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$allianceId,'realm_id'=>$realmId])->row_array();
-        if (!$m) throw new Exception('Not a member');
+    public function transferLeadership(int $byRealmId, int $targetRealmId): void {
+        [$a,$role] = $this->myAllianceWithRole($byRealmId);
+        if (!$a || $role!=='leader') throw new Exception('Only leader can transfer');
+        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$targetRealmId])->row_array();
+        if (!$m) throw new Exception('Target not in alliance');
+        $this->CI->db->trans_start();
+        $this->CI->db->update('alliance_members',['role'=>'officer'],['alliance_id'=>$a['id'],'realm_id'=>$byRealmId]);
+        $this->CI->db->update('alliance_members',['role'=>'leader'],['id'=>$m['id']]);
+        $this->log($a['id'],'transfer_leader',['from'=>$byRealmId,'to'=>$targetRealmId]);
+        $this->CI->db->trans_complete();
     }
 
-    private function log(int $allianceId, string $type, ?int $actorRealmId, $payload): void {
-        $this->CI->db->insert('alliance_logs',[
-            'alliance_id'=>$allianceId,'type'=>$type,'actor_realm_id'=>$actorRealmId,
-            'payload'=>json_encode($payload, JSON_UNESCAPED_UNICODE),'created_at'=>time()
-        ]);
+    public function kick(int $byRealmId, int $targetRealmId): void {
+        [$a,$role] = $this->myAllianceWithRole($byRealmId);
+        if (!$a || !in_array($role, ['leader','officer'])) throw new Exception('Not allowed');
+        $m = $this->CI->db->get_where('alliance_members',['alliance_id'=>$a['id'],'realm_id'=>$targetRealmId])->row_array();
+        if (!$m) throw new Exception('Target not in alliance');
+        if ($m['role']==='leader') throw new Exception('Cannot kick leader');
+        $this->CI->db->trans_start();
+        $this->CI->db->delete('alliance_members',['id'=>$m['id']]);
+        $this->CI->db->update('realms',['alliance_id'=>NULL],['id'=>$targetRealmId]);
+        $this->log($a['id'],'kick',['target'=>$targetRealmId,'by'=>$byRealmId]);
+        $this->CI->db->trans_complete();
     }
+
+    public function members(int $allianceId): array {
+        return $this->CI->db->select('m.*, r.user_id')->from('alliance_members m')->join('realms r','r.id=m.realm_id','left')->where('m.alliance_id',$allianceId)->order_by('m.role','ASC')->get()->result_array();
+    }
+
+    public function log(int $allianceId, string $type, array $data): void {
+        $this->CI->db->insert('alliance_logs',['alliance_id'=>$allianceId,'type'=>$type,'data'=>json_encode($data),'created_at'=>time()]);
+    }
+
+    // Id de canal de chat de alianza (reutiliza chat_messages.channel_id)
+    public function chatChannelId(int $allianceId): string { return 'ally_'.$allianceId; }
 }
