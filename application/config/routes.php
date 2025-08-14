@@ -57,3 +57,14 @@ $route['research/cancel/(:num)'] = 'research/cancel/$1';
 $route['arena'] = 'arena/index';
 $route['arena/queue'] = 'arena/queue';
 $route['arena/cancel'] = 'arena/cancel';
+
+$route['chat'] = 'chat/index';
+$route['chat/global'] = 'chat/index/global';
+$route['chat/alliance'] = 'chat/index/alliance';
+$route['chat/poll'] = 'chat/poll';
+$route['chat/post'] = 'chat/post';
+$route['messages'] = 'messages/index';
+$route['messages/compose'] = 'messages/compose';
+$route['messages/send'] = 'messages/send';
+$route['messages/read/(:num)'] = 'messages/read/$1';
+$route['messages/delete/(:num)'] = 'messages/delete/$1';

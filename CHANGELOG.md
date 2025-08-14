@@ -1,19 +1,16 @@
-# v1.9.0 — Arena PvP (matchmaking + ladder ELO) — sin torneos ni mapa
+# v1.10.0 — Mensajería & Chat (global/alianza + DMs)
 
 ## Añadido
-- **Temporadas de Arena** (`arena_seasons`) activas con rango de fechas.
-- **Ratings por temporada** (`arena_ratings`) con ELO y W/L/D.
-- **Cola de emparejamiento** (`arena_queue`) con rango de búsqueda expandible.
-- **Partidas** (`arena_matches`) resueltas automáticamente al emparejar, usando `Engine::duel()` y bonos compilados.
-- **Servicio** `ArenaService`:
-  - `enqueue/dequeue`, `matchmake()` (busca rival por ELO, crea y resuelve match), `leaderboard()`, `history()`.
-  - Recompensa opcional al ganador (oro/maná) configurable.
-- **UI** `/arena`: rating propio, **historial**, **clasificación** top.
-- **CLI** `Arenacli::matchmake [loops] [sleep]` para procesar la cola.
+- **Mensajes privados (DM)** 1:1 entre reinos: `dm_messages` con bandeja de **entrada** y **enviados**, lectura y borrado.
+- **Chat** en tiempo (casi) real mediante **polling**:
+  - Canales **globales** (`global`, `comercio`) y canal de **alianza** automático (si el reino pertenece a una).
+  - `chat_channels`, `chat_messages`, `chat_members` (para futuros canales privados).
+  - **UI** `/chat` con lista de canales, log y envío (AJAX); endpoint `poll` y `post`.
+- **Servicio** `ChatService` con autorización (pertenencia a alianza para canal de alianza).
+- **CLI** `Chatcli::cleanup` para eliminar mensajes antiguos según retención.
 
 ## Configuración
-- `application/config/arena.php`: `k_factor`, `search_delta`, `search_expand_sec`, `expand_step`, `reward`.
+- `application/config/chat.php`: `max_len`, `poll_batch`, `retention_days`, `ui_poll_ms`.
 
 ## Notas
-- Sin **torneos** ni **mapa/exploración/raids** (excluidos por decisión).
-- Determinista y data-driven; si no existe `armies`/`unit_def`, se usa un stub basado en edificios para el combate.
+- Determinista y **sin IA**. Moderación avanzada/anti-abuso vendrá en **S22**.

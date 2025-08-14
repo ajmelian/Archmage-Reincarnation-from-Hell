@@ -13,3 +13,6 @@ $lang['buildings']='Buildings';
 $lang['research']='Research';
 
 $lang['arena']='Arena';
+
+$lang['chat']='Chat';
+$lang['messages']='Messages';
