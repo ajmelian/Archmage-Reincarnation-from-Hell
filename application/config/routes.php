@@ -73,3 +73,17 @@ $route['mod/block/(:num)'] = 'mod/block/$1';
 $route['mod/unblock/(:num)'] = 'mod/unblock/$1';
 $route['mod/report_chat/(:num)'] = 'mod/report_chat/$1';
 $route['mod/report_dm/(:num)'] = 'mod/report_dm/$1';
+
+$route['admin'] = 'admin/index';
+$route['admin/reports'] = 'admin/reports/open';
+$route['admin/reports/(.*)'] = 'admin/reports/$1';
+$route['admin/resolve_report'] = 'admin/resolve_report';
+$route['admin/mutes'] = 'admin/mutes';
+$route['admin/mute_post'] = 'admin/mute_post';
+$route['admin/unmute/(:num)'] = 'admin/unmute/$1';
+$route['admin/economy'] = 'admin/economy';
+$route['admin/economy_post'] = 'admin/economy_post';
+$route['admin/logs'] = 'admin/logs/gm_actions';
+$route['admin/logs/(.*)'] = 'admin/logs/$1';
+$route['admin/users'] = 'admin/users';
+$route['admin/user_admin/(:num)/(grant|revoke)'] = 'admin/user_admin/$1/$2';

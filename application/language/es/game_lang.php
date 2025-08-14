@@ -18,3 +18,5 @@ $lang['chat']='Chat';
 $lang['messages']='Mensajes';
 
 $lang['moderation']='Moderación';
+
+$lang['admin']='Administración';

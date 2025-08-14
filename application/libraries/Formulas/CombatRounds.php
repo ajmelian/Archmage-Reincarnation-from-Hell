@@ -138,8 +138,8 @@ class CombatRounds {
             if ($u['qty']<=0) continue;
             if ($u['row']==='front') $front[]=$i; else $back[]=$i;
         }
-        $pool = $front ? $front : $back;
-        
+        $pool = $front if $front else $back
+        ;
         if (!$pool) return -1;
         return $pool[array_rand($pool)];
     }
