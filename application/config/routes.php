@@ -12,3 +12,5 @@ $route['api/state'] = 'api_game/state';
 
 $route['admin/import'] = 'admin/import/index';
 $route['admin/import/run'] = 'admin/import/run';
+
+$route['battle/json/(:num)'] = 'battle/json/$1';

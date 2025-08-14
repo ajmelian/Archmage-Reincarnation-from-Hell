@@ -27,6 +27,7 @@ $config['formulas'] = [
     ],
 
     'combat' => [
+        'rounds' => ['enable'=>true,'max_rounds'=>6,'retreat_threshold'=>0.3],
         // Daño base (mantiene compatibilidad con Formula::baseDamage)
         'damage_scale'      => 0.15,
         'min_damage'        => 0,

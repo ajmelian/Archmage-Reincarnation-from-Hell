@@ -1,25 +1,30 @@
-# v0.9.0 — Paridad de fórmulas + Golden tests
+# v1.0.0 — Combate multirronda (iniciativa/velocidad, moral, formaciones) + Replay timeline JSON
 
 ## Añadido
-- **Configuración de fórmulas** (`application/config/formulas.php`) con versión `legacy` y coeficientes editables para economía, combate y hechizos.
-- **Formulas/**:
-  - `CombatFormula`: cálculo de pérdidas por ronda con resistencias por tipo y selección de objetivo proporcional.
-  - `EconomyFormula`: producción de oro/maná/investigación con diminishing returns, stacking/caps y coste de investigación escalado.
-  - `SpellFormula`: potencia por nivel, coste de maná escalado y duración por tipo de hechizo.
-- **Golden tests (CLI)**:
-  - `Golden::run [all|economy|combat|spells]` lee CSVs en `application/tests/golden/*.csv`, ejecuta casos y valida contra resultados esperados (tolerancia configurable).
-  - Salida con resumen y código de retorno != 0 si hay fallos (útil para CI).
-- **Integración opcional en Engine**:
-  - Si `formulas.enable = true`, el combate del juego usa `CombatFormula` para calcular pérdidas por ronda (manteniendo compatibilidad de salida).
+- **Multirronda**: resolución de combate por rondas con orden de **iniciativa** según `speed`.
+- **Formaciones**: filas **front/back** y targeting que prioriza la **línea frontal**.
+- **Moral**: chequeo al final de cada ronda; retirada si pérdidas ≥ `retreat_threshold` (configurable).
+- **Timeline de batalla**: eventos detallados por ronda/ataque, exportables como **JSON**.
+- **Endpoint JSON**: `GET /battle/json/{id}` devuelve `timeline`, `losses` y `winner`.
+- **Integración**: si `formulas.combat.rounds.enable = true`, `Engine` usa el nuevo motor `CombatRounds` automáticamente.
+
+## Migraciones
+- **009_battles_timeline**: añade columnas (`timeline`, `winner`, `lossesA`, `lossesB`) a `battles` si existen.
+
+## Configuración
+- `application/config/formulas.php` → `combat.rounds`:
+  ```php
+  'rounds' => ['enable'=>true,'max_rounds'=>6,'retreat_threshold'=>0.3]
+  ```
 
 ## Notas
-- Los CSV de ejemplos son **plantillas**; sustituye `expected` con tus valores de referencia del juego original.
-- Ajusta coeficientes en `formulas.php` para conseguir paridad exacta sin tocar código.
+- Requiere que las unidades tengan `speed`, `morale` y `row` (`front`|`back`) para aprovechar todo el cálculo.
+- El **log** plano se sigue generando a partir del timeline para compatibilidad con el visor actual.
 
-## Cómo ejecutar
-```bash
-php public/index.php golden run all
-php public/index.php golden run combat
-php public/index.php golden run economy
-php public/index.php golden run spells
-```
+## Cómo probar
+1. Migrar hasta la 009:
+   ```bash
+   php public/index.php migrate up
+   ```
+2. Asegurar `formulas.combat.rounds.enable = true`.
+3. Ejecutar un combate y visitar `/battle/{id}` (log) o `/battle/json/{id}` (timeline JSON).
