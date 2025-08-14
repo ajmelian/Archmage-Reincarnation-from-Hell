@@ -13,6 +13,13 @@
     <div class="d-flex gap-2">
       <a class="btn btn-outline-secondary btn-sm" href="?lang=es">ES</a>
       <a class="btn btn-outline-secondary btn-sm" href="?lang=en">EN</a>
+        <div class="ms-auto me-2 small">
+      <?php if ($this->session->userdata('userId')): ?>
+        <?php echo html_escape($this->session->userdata('displayName') ?: 'Mage'); ?> · 
+        <a href="<?php echo site_url('auth/logout'); ?>"><?php echo $this->lang->line('logout') ?? 'Logout'; ?></a>
+      <?php else: ?>
+        <a href="<?php echo site_url('auth/login'); ?>">Login</a>
+      <?php endif; ?>
     </div>
   </div>
 </nav>

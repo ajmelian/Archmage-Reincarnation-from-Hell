@@ -16,7 +16,10 @@
           <?php if (!empty($error)): ?>
             <div class="alert alert-danger"><?php echo html_escape($error); ?></div>
           <?php endif; ?>
-          <form method="post" action="<?php echo site_url('auth/register'); ?>">
+          <form method="post" action="<?php echo site_url('auth/register'); ?>
+            <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+                   value="<?php echo $this->security->get_csrf_hash(); ?>">
+        ">
             <div class="mb-2">
               <label class="form-label">Email</label>
               <input class="form-control" type="email" name="email" required>

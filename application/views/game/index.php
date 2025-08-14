@@ -65,6 +65,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_explore'); ?></h2>
         <form id="formExplore" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="explore">
           <div class="col-12">
@@ -82,6 +84,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_research'); ?></h2>
         <form id="formResearch" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="research">
           <div class="col-12">
@@ -103,6 +107,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_recruit'); ?></h2>
         <form id="formRecruit" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="recruit">
           <div class="col-12">
@@ -128,6 +134,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_attack'); ?></h2>
         <form id="formAttack" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="attack">
           <div class="col-12">
@@ -145,6 +153,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_spell_research'); ?></h2>
         <form id="formSpellResearch" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="spell_research">
           <div class="col-12">
@@ -166,6 +176,8 @@
       <div class="card-body">
         <h2 class="h6"><?php echo $this->lang->line('order_spell_cast'); ?></h2>
         <form id="formSpellCast" class="row row-cols-lg-auto g-2 align-items-center">
+    <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" 
+           value="<?php echo $this->security->get_csrf_hash(); ?>">
           <input type="hidden" name="tick" value="<?php echo (int)$currentTick + 1; ?>">
           <input type="hidden" name="type" value="spell_cast">
           <div class="col-12">
@@ -187,6 +199,46 @@
   </div>
 
 </div>
+
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h5 mb-3"><?php echo $this->lang->line('spellbook'); ?></h2>
+        <div class="row">
+          <div class="col-12 col-md-6">
+            <h3 class="h6"><?php echo $this->lang->line('spells_available'); ?></h3>
+            <ul class="list-group list-group-flush">
+              <?php 
+                $progress = $state['spellsProgress'] ?? [];
+                $done = $state['spellsCompleted'] ?? [];
+                foreach ($spells as $s): 
+                  $sid = $s['id']; $cost = (int)$s['research_cost']; $p = (int)($progress[$sid] ?? 0);
+                  $status = !empty($done[$sid]) ? '✅' : ($p>0 ? ($p.'/'.$cost) : '—');
+              ?>
+                <li class="list-group-item d-flex justify-content-between">
+                  <span><?php echo html_escape($s['name']); ?></span>
+                  <span class="text-muted"><?php echo $status; ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+          <div class="col-12 col-md-6">
+            <h3 class="h6"><?php echo $this->lang->line('active_effects'); ?></h3>
+            <ul class="list-group list-group-flush">
+              <?php if (!empty($state['activeEffects'])): foreach ($state['activeEffects'] as $eff): ?>
+                <li class="list-group-item">
+                  <?php echo html_escape($eff['spellId']); ?> — <?php echo $this->lang->line('expires_tick'); ?>: <?php echo (int)$eff['expiresTick']; ?>
+                </li>
+              <?php endforeach; else: ?>
+                <li class="list-group-item text-muted"><?php echo $this->lang->line('none'); ?></li>
+              <?php endif; ?>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <div class="mt-3" id="orderMsg" class="small"></div>
 

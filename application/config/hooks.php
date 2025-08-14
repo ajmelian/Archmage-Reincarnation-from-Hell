@@ -5,3 +5,11 @@ $hook['pre_controller'][] = array(
     'filename' => 'LanguageLoader.php',
     'filepath' => 'hooks'
 );
+
+
+$hook['pre_controller'][] = array(
+    'class'    => 'SessionPruner',
+    'function' => 'run',
+    'filename' => 'SessionPruner.php',
+    'filepath' => 'hooks'
+);

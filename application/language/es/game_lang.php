@@ -28,3 +28,11 @@ $lang['order_spell_research'] = 'Investigar hechizo';
 $lang['order_spell_cast'] = 'Lanzar hechizo';
 $lang['spell'] = 'Hechizo';
 $lang['cast'] = 'Lanzar';
+
+$lang['spellbook'] = 'Libro de Hechizos';
+$lang['spells_available'] = 'Hechizos disponibles';
+$lang['active_effects'] = 'Efectos activos';
+$lang['expires_tick'] = 'Expira en tick';
+$lang['none'] = 'Ninguno';
+
+$lang['logout'] = 'Salir';

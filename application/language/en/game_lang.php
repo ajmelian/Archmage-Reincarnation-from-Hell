@@ -28,3 +28,11 @@ $lang['order_spell_research'] = 'Research spell';
 $lang['order_spell_cast'] = 'Cast spell';
 $lang['spell'] = 'Spell';
 $lang['cast'] = 'Cast';
+
+$lang['spellbook'] = 'Spellbook';
+$lang['spells_available'] = 'Available spells';
+$lang['active_effects'] = 'Active effects';
+$lang['expires_tick'] = 'Expires at tick';
+$lang['none'] = 'None';
+
+$lang['logout'] = 'Logout';

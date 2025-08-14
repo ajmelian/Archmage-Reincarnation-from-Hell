@@ -1,13 +1,11 @@
-# v0.2.0 — Auth + Spells
-
-## Añadido
-- Autenticación completa y sesiones de 5 minutos.
-- Sistema de hechizos (investigación + lanzamiento).
-- Registro de hechizos en logs.
+# v0.3.0 — Seguridad + Spellbook + Seed
 
 ## Seguridad
-- Regeneración de sesión en login/logout.
+- CSRF en todas las formularios.
+- Purga automática de sesiones expiradas.
 
-## Migraciones
-- 003 (spells).
+## UX
+- Libro de Hechizos con estados y efectos.
 
+## Herramientas
+- Seeder de demo.
