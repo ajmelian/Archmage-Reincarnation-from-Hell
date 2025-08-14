@@ -19,7 +19,7 @@ class Wallet {
     }
 
     public function add(int $realmId, string $res, int $amount, string $reason, string $refType=null, int $refId=null): void {
-        $col = ($res==='mana') ? 'mana' : 'gold';
+        $col = ($res==='mana') ? 'mana' : (($res==='research') ? 'research' : 'gold');
         $this->ensure($realmId);
         $this->CI->db->trans_start();
         $this->CI->db->set($col, "$col+$amount", FALSE)->set('updated_at', time())->where('realm_id',$realmId)->update('wallets');
@@ -28,7 +28,7 @@ class Wallet {
     }
 
     public function spend(int $realmId, string $res, int $amount, string $reason, string $refType=null, int $refId=null): void {
-        $col = ($res==='mana') ? 'mana' : 'gold';
+        $col = ($res==='mana') ? 'mana' : (($res==='research') ? 'research' : 'gold');
         $this->ensure($realmId);
         // check balance
         $row = $this->CI->db->get_where('wallets', ['realm_id'=>$realmId])->row_array();

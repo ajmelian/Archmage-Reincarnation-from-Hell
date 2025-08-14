@@ -1,22 +1,23 @@
-# v1.4.0 — Inventario & Cartera (oro/maná) + Integración Mercado/Alianza — *sin IA*
+# v1.5.0 — Economía de turno (tick loop) + colas de construcción e investigación + efectos
 
 ## Añadido
-- **Cartera** (`wallets` + `wallet_logs`): oro/maná por reino; API `Wallet::balance/add/spend` con auditoría.
-- **Inventario** (`inventories` + `inventory_logs`): stack por `item_id`; API `Inventory::add/remove` transaccional con auditoría.
-- **UI** `/inventory`: consulta de cartera e inventario.
+- **Tick loop** determinista (CLI): `php public/index.php tickcli run [N]`
+  - Producción por reino (oro, maná, investigación) usando `EconomyFormula` + bonos de talentos (si existen).
+  - **Upkeep** opcional por unidad (si existe tabla `armies`).
+  - Limpieza de **efectos activos** expirados.
+- **Colas**
+  - `building_queue` → aplica a `buildings` cuando `finish_at <= now`.
+  - `research_queue` → sube `research_levels` al `level_target` al concluir.
+- **Estructuras**
+  - `buildings` (qty/level por reino y tipo).
+  - `research_levels` por reino y tech.
+  - `active_effects` para buffs/debuffs temporales.
+  - `tick_state` para control de locking/contador de ticks.
+- **Wallet** extendida con **`research`**.
 
-## Integraciones
-- **Mercado (S11)**:
-  - Al **listar**, se descuenta el ítem del inventario del vendedor (**escrow**).
-  - Al **comprar**, se descuenta **oro** del comprador; el vendedor recibe el **neto** (precio×qty − impuesto) y el comprador recibe los **ítems**.
-  - Al **cancelar/expirar**, el remanente vuelve al inventario del vendedor.
-- **Banco de Alianza (S12)**:
-  - `bankDeposit` gasta recursos del reino del actor.
-  - `bankWithdraw` entrega recursos al reino del actor.
-
-## Migraciones
-- **013_inventories_wallets**: crea `wallets`, `inventories`, y sus logs.
+## Configuración
+- `application/config/tick.php`: `period_sec`, `batch_size`, `upkeep.*`.
 
 ## Notas
-- Todo el flujo es **determinista y data-driven**, **sin IA**.
-- Ajusta permisos y validaciones adicionales (p. ej. límites de retiro) según diseño.
+- 100% **sin IA**: todo basado en **reglas y datos**.
+- Los productores/colas son genéricos; conecta tus UIs de edificios e investigación para **insertar** en `*_queue` y el tick hará el resto.
