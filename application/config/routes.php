@@ -14,3 +14,6 @@ $route['admin/import'] = 'admin/import/index';
 $route['admin/import/run'] = 'admin/import/run';
 
 $route['battle/json/(:num)'] = 'battle/json/$1';
+
+$route['heroes'] = 'heroes/index';
+$route['heroes/allocate'] = 'heroes/allocate';
