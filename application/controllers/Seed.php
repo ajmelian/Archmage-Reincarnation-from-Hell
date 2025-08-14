@@ -39,8 +39,6 @@ class Seed extends CI_Controller {
         }
         echo "Done.\n";
     }
-}
-
 
     public function items() {
         echo "Seeding items to Alice and promoting to admin...\n";
@@ -59,3 +57,4 @@ class Seed extends CI_Controller {
         }
         echo "Done.\n";
     }
+}
