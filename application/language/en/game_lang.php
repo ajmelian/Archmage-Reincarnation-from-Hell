@@ -5,3 +5,5 @@ $lang['heroes_progression']='Heroes · Progression';
 
 $lang['alliances']='Alliances';
 $lang['diplomacy']='Diplomacy';
+
+$lang['inventory_wallet']='Inventory & Wallet';

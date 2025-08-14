@@ -5,6 +5,7 @@ class AllianceService {
     public function __construct() {
         $this->CI =& get_instance();
         $this->CI->load->database();
+        $this->CI->load->library('Wallet');
     }
 
     public function create(int $leaderRealmId, string $name, string $tag, string $desc=''): int {
@@ -117,7 +118,7 @@ class AllianceService {
         $col = ($res==='mana') ? 'mana' : 'gold';
         $this->CI->db->set($col, "$col+$amount", FALSE)->set('updated_at', time())->where('alliance_id',$allianceId)->update('alliance_bank');
         $this->log($allianceId, 'bank', $realmId, ['op'=>'deposit','res'=>$col,'amount'=>$amount]);
-        // TODO: subtract from player's realm resources
+        $this->CI->wallet->spend($realmId, $col, $amount, 'ally_bank_deposit', 'alliance', $allianceId);
     }
 
     public function bankWithdraw(int $allianceId, int $actorRealmId, string $res, int $amount): void {
@@ -126,7 +127,7 @@ class AllianceService {
         $col = ($res==='mana') ? 'mana' : 'gold';
         $this->CI->db->set($col, "$col-$amount", FALSE)->set('updated_at', time())->where('alliance_id',$allianceId)->update('alliance_bank');
         $this->log($allianceId, 'bank', $actorRealmId, ['op'=>'withdraw','res'=>$col,'amount'=>$amount]);
-        // TODO: add to actor's realm resources
+        $this->CI->wallet->add($actorRealmId, $col, $amount, 'ally_bank_withdraw', 'alliance', $allianceId);
     }
 
     // Diplomacy

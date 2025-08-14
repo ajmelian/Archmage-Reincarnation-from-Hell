@@ -1,19 +1,22 @@
-# v1.3.0 — Alianzas 2.0 y Diplomacia (Guerras/NAP/Pactos)
+# v1.4.0 — Inventario & Cartera (oro/maná) + Integración Mercado/Alianza — *sin IA*
 
 ## Añadido
-- **Alianzas** con roles `leader|officer|member`, invitaciones, registro de eventos y **banco de alianza** (oro/maná).
-- **Diplomacia** entre alianzas: estados `neutral|nap|allied|war`, con términos (JSON), histórico y **war score** por lado.
-- **War events** (batallas, raids, ajustes de score) anexados a la relación de diplomacia.
-- **Servicios**:
-  - `AllianceService`: creación, invitaciones, unión/salida, promoción, banco (deposit/withdraw), y gestión de diplomacia.
-- **UI**:
-  - `/alliances` (listado), `/alliances/create`, `/alliances/view/{id}` (miembros, banco, diplomacia, invitaciones).
-- **Rutas** para declarar guerra, NAP, alianza y neutralidad.
+- **Cartera** (`wallets` + `wallet_logs`): oro/maná por reino; API `Wallet::balance/add/spend` con auditoría.
+- **Inventario** (`inventories` + `inventory_logs`): stack por `item_id`; API `Inventory::add/remove` transaccional con auditoría.
+- **UI** `/inventory`: consulta de cartera e inventario.
+
+## Integraciones
+- **Mercado (S11)**:
+  - Al **listar**, se descuenta el ítem del inventario del vendedor (**escrow**).
+  - Al **comprar**, se descuenta **oro** del comprador; el vendedor recibe el **neto** (precio×qty − impuesto) y el comprador recibe los **ítems**.
+  - Al **cancelar/expirar**, el remanente vuelve al inventario del vendedor.
+- **Banco de Alianza (S12)**:
+  - `bankDeposit` gasta recursos del reino del actor.
+  - `bankWithdraw` entrega recursos al reino del actor.
 
 ## Migraciones
-- **012_alliances_diplomacy**: `alliances`, `alliance_members`, `alliance_invites`, `alliance_bank`, `alliance_logs`, `diplomacy`, `war_events`.
+- **013_inventories_wallets**: crea `wallets`, `inventories`, y sus logs.
 
 ## Notas
-- La transferencia real de recursos al **banco** debe integrarse con tu economía (TODO marcado).
-- `war_score_a/b` se actualiza con `AllianceService::addWarScore(diploId, side, delta, event)`.
-- Considera restringir **frecuencia de cambios diplomáticos** con cooldowns en el servicio si lo requiere el diseño.
+- Todo el flujo es **determinista y data-driven**, **sin IA**.
+- Ajusta permisos y validaciones adicionales (p. ej. límites de retiro) según diseño.

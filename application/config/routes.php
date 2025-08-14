@@ -42,3 +42,5 @@ $route['alliances/declare/(:num)'] = 'alliances/declare/$1';
 $route['alliances/nap/(:num)'] = 'alliances/nap/$1';
 $route['alliances/ally/(:num)'] = 'alliances/ally/$1';
 $route['alliances/neutral/(:num)'] = 'alliances/neutral/$1';
+
+$route['inventory'] = 'inventoryui/index';

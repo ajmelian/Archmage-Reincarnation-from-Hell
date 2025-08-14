@@ -7,6 +7,8 @@ class MarketService {
         $CI =& get_instance();
         $CI->load->database();
         $CI->load->config('market');
+        $CI->load->library('Wallet');
+        $CI->load->library('Inventory');
         $this->cfg = $CI->config->item('market') ?? [];
         $this->CI = $CI;
     }
@@ -14,7 +16,7 @@ class MarketService {
     public function createListing(int $realmId, string $itemId, int $qty, int $ppu): int {
         $this->guardFloor($ppu);
         $this->guardDailyLimit($realmId, 'sell');
-        // TODO: check inventory here
+        $this->CI->inventory->remove($realmId, $itemId, max(1,$qty), 'market_escrow');
         $now = time();
         $exp = $now + (int)($this->cfg['listing_lifetime'] ?? 259200);
         $data = [
@@ -42,7 +44,7 @@ class MarketService {
         $total = $qty * (int)$l['price_per_unit'];
         $tax = (float)$l['tax_rate'] * $total;
         $pay = (int)ceil($total + $tax);
-        // TODO: check buyer has enough currency and seller inventory escrow
+        $this->CI->wallet->spend($buyerRealmId, 'gold', $pay, 'market_buy', 'listing', (int)$l['id']);
         $this->CI->db->trans_begin();
         try {
             $this->CI->db->set('sold_qty', 'sold_qty+'.$qty, FALSE)
@@ -64,11 +66,21 @@ class MarketService {
         if (!$l || (int)$l['realm_id'] !== $realmId) throw new Exception('Not your listing');
         if ($l['status'] !== 'active') throw new Exception('Cannot cancel this listing');
         $this->CI->db->where('id', $listingId)->update('market_listings', ['status'=>'canceled']);
+        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
+        if ($l) {
+            $remain = (int)$l['qty'] - (int)$l['sold_qty'];
+            if ($remain>0) $this->CI->inventory->add($realmId, $l['item_id'], $remain, 'market_return', 'listing', (int)$l['id']);
+        }
         $this->log('cancel', $realmId, $listingId, []);
     }
 
     public function expire(int $listingId): void {
         $this->CI->db->where('id', $listingId)->update('market_listings', ['status'=>'expired']);
+        $l = $this->CI->db->get_where('market_listings', ['id'=>$listingId])->row_array();
+        if ($l) {
+            $remain = (int)$l['qty'] - (int)$l['sold_qty'];
+            if ($remain>0) $this->CI->inventory->add((int)$l['realm_id'], $l['item_id'], $remain, 'market_return', 'listing', (int)$l['id']);
+        }
         $this->log('expire', null, $listingId, []);
     }
 
