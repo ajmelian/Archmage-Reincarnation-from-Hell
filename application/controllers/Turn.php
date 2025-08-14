@@ -4,8 +4,8 @@ class Turn extends CI_Controller {
     public function __construct() {
         parent::__construct();
         if (!is_cli()) show_404();
-        $this->load->library(['Engine','EngineExt','EngineSpells']);
-        $this->load->model(['Realm_model','Unit_model','Building_model','Research_model','Spell_model']);
+        $this->load->library(['Engine','EngineExt','EngineSpells','EngineHeroes']);
+        $this->load->model(['Realm_model','Unit_model','Building_model','Research_model','Spell_model','Hero_model','Realmhero_model','Item_model','Inventory_model']);
         $this->load->database();
     }
 
@@ -24,6 +24,25 @@ class Turn extends CI_Controller {
 
             // Producción base por edificios
             EngineExt::produce($state, $buildingDefs);
+
+            // Bonos de héroes/objetos a recursos
+            $realmHeroes = $this->Realmhero_model->forRealm((int)$realm['id']);
+            // Equipamiento por héroe
+            $equipped = $this->db->get_where('hero_items', ['realm_hero_id IN (SELECT id FROM realm_heroes WHERE realm_id='.$realm['id'].')'=>NULL])->result_array(); // workaround CI for IN
+            // Alternativa: manual join
+            $equipped = $this->db->query('SELECT hi.* FROM hero_items hi JOIN realm_heroes rh ON rh.id=hi.realm_hero_id WHERE rh.realm_id=?', [(int)$realm['id']])->result_array();
+            $itemsByHero = [];
+            foreach ($equipped as $e) { $itemsByHero[$e['realm_hero_id']][] = $e; }
+            $itemDefs = $this->Item_model->mapById();
+
+            $bHeroes = EngineHeroes::bonuses($realmHeroes, $itemDefs);
+            $bItems  = EngineHeroes::itemsBonuses($equipped, $itemDefs);
+            $goldMult = 1.0 + ($bHeroes['gold_bonus'] + $bItems['gold_bonus']);
+            $manaMult = 1.0 + ($bHeroes['mana_bonus'] + $bItems['mana_bonus']);
+            $resMult  = 1.0 + ($bHeroes['research_bonus'] + $bItems['research_bonus']);
+            $state['resources']['gold'] = (int)floor($state['resources']['gold'] * $goldMult);
+            $state['resources']['mana'] = (int)floor($state['resources']['mana'] * $manaMult);
+            $state['resources']['research'] = (int)floor($state['resources']['research'] * $resMult);
 
             // Bonos de investigación aplicados a recursos recién generados
             $bonus = EngineExt::researchBonuses($state, $researchDefs);
@@ -64,6 +83,53 @@ class Turn extends CI_Controller {
             }
 
             // Tercero: recruit
+            // Héroes: contratación
+            foreach ($list as $o) {
+                $payload = json_decode($o['payload'], true) ?: [];
+                if (($payload['type'] ?? '') === 'hire_hero') {
+                    $hid = (string)($payload['heroId'] ?? '');
+                    $defs = $this->Hero_model->mapById();
+                    if (isset($defs[$hid])) {
+                        $cost = (int)($defs[$hid]['gold_cost'] ?? 200);
+                        if (($state['resources']['gold'] ?? 0) >= $cost) {
+                            $state['resources']['gold'] -= $cost;
+                            $stats = json_decode($defs[$hid]['base_stats'] ?? '{}', true) ?: [];
+                            $this->Realmhero_model->add((int)$realm['id'], $hid, $stats);
+                            $this->markApplied($o['id']);
+                        } else {
+                            $this->markRejected($o['id'], 'Not enough gold for hero');
+                        }
+                    } else {
+                        $this->markRejected($o['id'], 'Unknown hero');
+                    }
+                }
+            }
+
+            // Equipar item a héroe
+            foreach ($list as $o) {
+                $payload = json_decode($o['payload'], true) ?: [];
+                if (($payload['type'] ?? '') === 'equip_item') {
+                    $rid = (int)($payload['realmHeroId'] ?? 0);
+                    $itemId = (string)($payload['itemId'] ?? '');
+                    $hero = $this->db->get_where('realm_heroes', ['id'=>$rid,'realm_id'=>$realm['id']])->row_array();
+                    $itemDefs = $this->Item_model->mapById();
+                    if ($hero && isset($itemDefs[$itemId])) {
+                        // check inventory and slot uniqueness
+                        $slot = $itemDefs[$itemId]['slot'] ?? 'trinket';
+                        $exists = $this->db->get_where('hero_items', ['realm_hero_id'=>$rid,'slot'=>$slot])->row_array();
+                        if ($exists) { $this->markRejected($o['id'], 'Slot already equipped'); continue; }
+                        if ($this->Inventory_model->take((int)$realm['id'], $itemId, 1)) {
+                            $this->db->insert('hero_items', ['realm_hero_id'=>$rid,'item_id'=>$itemId,'slot'=>$slot,'created_at'=>time()]);
+                            $this->markApplied($o['id']);
+                        } else {
+                            $this->markRejected($o['id'], 'Item not in inventory');
+                        }
+                    } else {
+                        $this->markRejected($o['id'], 'Invalid hero or item');
+                    }
+                }
+            }
+
             foreach ($list as $o) {
                 $payload = json_decode($o['payload'], true) ?: [];
                 if (($payload['type'] ?? '') === 'recruit') {
@@ -157,11 +223,19 @@ class Turn extends CI_Controller {
 $modsB = EngineSpells::activeModifiers($stateB, $tick);
 // Apply research bonuses too
 $rbA = EngineExt::researchBonuses($stateA, $researchDefs);
+$rhA = $this->Realmhero_model->forRealm((int)$realm['id']);
+$eqA = $this->db->query('SELECT hi.* FROM hero_items hi JOIN realm_heroes rh ON rh.id=hi.realm_hero_id WHERE rh.realm_id=?', [(int)$realm['id']])->result_array();
+$ihA = EngineHeroes::itemsBonuses($eqA, $itemDefs);
+$bhA = EngineHeroes::bonuses($rhA, $itemDefs);
 $rbB = EngineExt::researchBonuses($stateB, $researchDefs);
-$attackMultA = 1.0 + ($modsA['attack_bonus'] + ($rbA['attack_bonus'] ?? 0));
-$defenseMultA = 1.0 + ($modsA['defense_bonus'] + ($rbA['defense_bonus'] ?? 0));
-$attackMultB = 1.0 + ($modsB['attack_bonus'] + ($rbB['attack_bonus'] ?? 0));
-$defenseMultB = 1.0 + ($modsB['defense_bonus'] + ($rbB['defense_bonus'] ?? 0));
+$rhB = $this->Realmhero_model->forRealm((int)$target['id']);
+$eqB = $this->db->query('SELECT hi.* FROM hero_items hi JOIN realm_heroes rh ON rh.id=hi.realm_hero_id WHERE rh.realm_id=?', [(int)$target['id']])->result_array();
+$ihB = EngineHeroes::itemsBonuses($eqB, $itemDefs);
+$bhB = EngineHeroes::bonuses($rhB, $itemDefs);
+$attackMultA = 1.0 + ($modsA['attack_bonus'] + ($rbA['attack_bonus'] ?? 0) + ($bhA['attack_bonus'] ?? 0) + ($ihA['attack_bonus'] ?? 0));
+$defenseMultA = 1.0 + ($modsA['defense_bonus'] + ($rbA['defense_bonus'] ?? 0) + ($bhA['defense_bonus'] ?? 0) + ($ihA['defense_bonus'] ?? 0));
+$attackMultB = 1.0 + ($modsB['attack_bonus'] + ($rbB['attack_bonus'] ?? 0) + ($bhB['attack_bonus'] ?? 0) + ($ihB['attack_bonus'] ?? 0));
+$defenseMultB = 1.0 + ($modsB['defense_bonus'] + ($rbB['defense_bonus'] ?? 0) + ($bhB['defense_bonus'] ?? 0) + ($ihB['defense_bonus'] ?? 0));
 
 foreach ($sideA as &$u) { $u['attack'] = (int)round($u['attack'] * $attackMultA); $u['defense'] = (int)round($u['defense'] * $defenseMultA); }
 foreach ($sideB as &$u) { $u['attack'] = (int)round($u['attack'] * $attackMultB); $u['defense'] = (int)round($u['defense'] * $defenseMultB); }

@@ -1,11 +1,11 @@
-# v0.3.0 — Seguridad + Spellbook + Seed
+# v0.4.0 — Héroes, Ítems y Admin
 
-## Seguridad
-- CSRF en todas las formularios.
-- Purga automática de sesiones expiradas.
+## Añadido
+- Sistema de héroes y equipamiento.
+- Panel admin para definiciones y logs.
 
-## UX
-- Libro de Hechizos con estados y efectos.
+## Migraciones
+- 004 (heroes/items/inventory, users.role).
 
-## Herramientas
-- Seeder de demo.
+## Notas
+- Alice promovida a admin con `seed items`.

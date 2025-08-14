@@ -38,6 +38,16 @@ class Orders extends CI_Controller {
                 $payload['spellId'] = $this->input->post('spellId', TRUE);
                 $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
                 break;
+            case 'hire_hero':
+                $payload['heroId'] = $this->input->post('heroId', TRUE);
+                break;
+            case 'equip_item':
+                $payload['realmHeroId'] = (int)$this->input->post('realmHeroId', TRUE);
+                $payload['itemId'] = $this->input->post('itemId', TRUE);
+                break;
+                $payload['spellId'] = $this->input->post('spellId', TRUE);
+                $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
+                break;
                 $payload['targetRealmId'] = (int)$this->input->post('targetRealmId', TRUE);
                 break;
             default:

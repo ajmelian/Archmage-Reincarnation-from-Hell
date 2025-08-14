@@ -36,3 +36,11 @@ $lang['expires_tick'] = 'Expires at tick';
 $lang['none'] = 'None';
 
 $lang['logout'] = 'Logout';
+
+$lang['heroes'] = 'Heroes';
+$lang['equipped'] = 'Equipped';
+$lang['hire_hero'] = 'Hire hero';
+$lang['hero'] = 'Hero';
+$lang['inventory'] = 'Inventory';
+$lang['equip_item'] = 'Equip item';
+$lang['item'] = 'Item';

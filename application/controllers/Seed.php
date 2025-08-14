@@ -40,3 +40,22 @@ class Seed extends CI_Controller {
         echo "Done.\n";
     }
 }
+
+
+    public function items() {
+        echo "Seeding items to Alice and promoting to admin...\n";
+        $alice = $this->User_model->findByEmail('alice@example.com');
+        if ($alice) {
+            $this->db->where('id', $alice['id'])->update('users', ['role'=>'admin']);
+            $realm = $this->db->get_where('realms', ['user_id'=>$alice['id']])->row_array();
+            if ($realm) {
+                $this->load->model('Inventory_model');
+                $this->Inventory_model->add((int)$realm['id'], 'banner_of_valor', 2);
+                $this->Inventory_model->add((int)$realm['id'], 'tome_of_wisdom', 1);
+                echo "Added items to Alice's realm.\n";
+            }
+        } else {
+            echo "Alice not found. Run seed demo first.\n";
+        }
+        echo "Done.\n";
+    }
