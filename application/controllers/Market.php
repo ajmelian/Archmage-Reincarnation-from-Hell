@@ -18,6 +18,8 @@ class Market extends MY_Controller {
     }
 
     public function index() {
+        // Cache de salida 60s (solo GET)
+        if ($this->input->method(TRUE)==='GET') $this->output->cache(1);
         $item = $this->input->get('item', TRUE);
         if ($item) $this->db->where('item_id',$item);
         $rows = $this->db->order_by('price_per_unit','ASC')->get_where('market_listings',['status'=>0])->result_array();

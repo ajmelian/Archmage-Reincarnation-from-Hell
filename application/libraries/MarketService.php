@@ -5,7 +5,7 @@ class MarketService {
         $this->CI =& get_instance();
         $this->CI->load->database();
         $this->CI->load->config('market');
-        $this->CI->load->library(['Wallet','Observability']);
+        $this->CI->load->library(['Wallet','Observability','Caching']);
     }
 
     private function cfg($key, $default=null) {

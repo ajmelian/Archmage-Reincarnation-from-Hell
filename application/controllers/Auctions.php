@@ -18,6 +18,7 @@ class Auctions extends MY_Controller {
     }
 
     public function index() {
+        if ($this->input->method(TRUE)==='GET') $this->output->cache(1);
         $rows = $this->db->order_by('ends_at','ASC')->get_where('auctions',['status'=>0])->result_array();
         $this->load->view('auctions/index', ['rows'=>$rows]);
     }

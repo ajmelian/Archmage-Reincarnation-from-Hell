@@ -1,46 +1,89 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Caching {
-    private $CI;
+    private $driver;
     private $prefix;
-    private $ttl;
+    private $path;
+    private $ttls;
+    private $redis;
+
     public function __construct() {
         $this->CI =& get_instance();
-        $this->CI->load->driver('cache');
-        $this->CI->load->config('cache_ext');
-        $cfg = $this->CI->config->item('cache_ext');
-        $this->prefix = $cfg['key_prefix'] ?? 'am_';
-        $this->ttl = (int)($cfg['default_ttl'] ?? 60);
-    }
-    private function k($key) { return $this->prefix.$key; }
-
-    public function get($key) { return $this->CI->cache->get($this->k($key)); }
-    public function set($key, $val, $ttl=null) {
-        return $this->CI->cache->save($this->k($key), $val, $ttl ?? $this->ttl);
-    }
-    public function delete($key) { return $this->CI->cache->delete($this->k($key)); }
-
-    public function remember($key, $ttl, callable $cb) {
-        $v = $this->get($key);
-        if ($v !== FALSE && $v !== null) return $v;
-        $v = $cb();
-        $this->set($key, $v, $ttl);
-        return $v;
-    }
-
-    // Tagging (simple): mantiene una lista de claves por tag para invalidar
-    public function tagSet(array $tags, $key, $ttl=null) {
-        foreach ($tags as $t) {
-            $listKey = $this->k('_tag_'.$t);
-            $list = $this->CI->cache->get($listKey) ?: [];
-            if (!in_array($key, $list, true)) $list[] = $key;
-            $this->CI->cache->save($listKey, $list, $ttl ?? $this->ttl*10);
+        $this->CI->load->config('cache');
+        $cfg = $this->CI->config->item('cache') ?? [];
+        $this->driver = $cfg['driver'] ?? 'file';
+        $this->prefix = ($cfg['namespace'] ?? 'archmage') . ':';
+        $this->ttls   = $cfg['ttls'] ?? [];
+        $this->path   = rtrim($cfg['path'] ?? (APPPATH.'cache/archmage'), '/');
+        if ($this->driver === 'file' && !is_dir($this->path)) @mkdir($this->path, 0775, true);
+        if ($this->driver === 'redis' && class_exists('Redis')) {
+            $this->redis = new Redis();
+            $r = $cfg['redis'] ?? [];
+            @$this->redis->connect($r['host'] ?? '127.0.0.1', $r['port'] ?? 6379, $r['timeout'] ?? 1.0);
+            if (!empty($r['prefix'])) $this->redis->setOption(Redis::OPT_PREFIX, $r['prefix']);
         }
     }
-    public function invalidateTag($tag) {
-        $listKey = $this->k('_tag_'.$tag);
-        $list = $this->CI->cache->get($listKey) ?: [];
-        foreach ($list as $k) $this->delete($k);
-        $this->CI->cache->delete($listKey);
+
+    private function ttlFor($key, $ttl=null) {
+        if ($ttl) return $ttl;
+        foreach ($this->ttls as $k=>$v) {
+            if (strpos($key, $k) === 0) return (int)$v;
+        }
+        return 60;
+    }
+
+    public function get($key) {
+        $k = $this->prefix.$key;
+        if ($this->driver === 'apcu' && function_exists('apcu_fetch')) {
+            $ok = false; $val = apcu_fetch($k, $ok); return $ok ? $val : null;
+        } elseif ($this->driver === 'redis' && $this->redis) {
+            $val = $this->redis->get($k); return $val ? json_decode($val, true) : null;
+        } else { // file
+            $file = $this->path.'/'.md5($k).'.cache.json';
+            if (!is_file($file)) return null;
+            $raw = @file_get_contents($file);
+            if ($raw === false) return null;
+            $arr = json_decode($raw, true);
+            if (!$arr) return null;
+            if (!empty($arr['e']) && $arr['e'] < time()) { @unlink($file); return null; }
+            return $arr['v'];
+        }
+    }
+
+    public function set($key, $value, $ttl=null) {
+        $k = $this->prefix.$key; $ttl = $this->ttlFor($key, $ttl);
+        if ($this->driver === 'apcu' && function_exists('apcu_store')) {
+            return apcu_store($k, $value, $ttl);
+        } elseif ($this->driver === 'redis' && $this->redis) {
+            return $this->redis->setex($k, $ttl, json_encode($value));
+        } else {
+            $file = $this->path.'/'.md5($k).'.cache.json';
+            $payload = json_encode(['e'=>time()+$ttl,'v'=>$value]);
+            return @file_put_contents($file, $payload) !== false;
+        }
+    }
+
+    public function delete($key) {
+        $k = $this->prefix.$key; // importante: concatenación (.) no suma (+)
+        if ($this->driver === 'apcu' && function_exists('apcu_delete')) return apcu_delete($k);
+        elseif ($this->driver === 'redis' && $this->redis) return $this->redis->del($k);
+        else {
+            $file = $this->path.'/'.md5($k).'.cache.json';
+            if (is_file($file)) @unlink($file);
+            return true;
+        }
+    }
+
+    public function deleteByPrefix($prefix) {
+        if ($this->driver === 'redis' && $this->redis) {
+            $it = NULL;
+            while ($arr = $this->redis->scan($it, $this->prefix.$prefix.'*')) {
+                foreach ($arr as $k) { $this->redis->del($k); }
+            }
+            return true;
+        }
+        // driver file: no listado de claves; usa TTLs cortos o vaciado selectivo por namespace si fuese necesario
+        // (si necesitas purgar agresivo, elimina todos los *.cache.json del directorio).
+        return true;
     }
 }

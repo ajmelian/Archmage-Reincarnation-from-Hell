@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService','ModerationService','AuditLog','ExportService']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService','MarketService','AuctionService','AllianceService','ModerationService','AuditLog','ExportService','RateLimiter']);
         $this->load->config('performance');
     }
 
@@ -307,6 +307,8 @@ class V1 extends MY_ApiController {
 
     // GET /api/v1/export?module=market_trades&format=csv&since=...
     public function export() {
+        list($ok,$reset) = $this->ratelimiter->check('api_export', 60, 60);
+        if (!$ok) { $this->json(['ok'=>false,'error'=>'rate_limited','reset'=>$reset], 429); return; }
         $this->apiauth->enforceScope($this->apiToken, 'read');
         $module = (string)$this->input->get('module', TRUE);
         $format = (string)$this->input->get('format', TRUE) ?: 'csv';
@@ -317,9 +319,17 @@ class V1 extends MY_ApiController {
         $rows = $this->exportservice->fetch($module, $filters);
         if ($format==='json') {
             $payload = json_encode($rows, JSON_UNESCAPED_UNICODE);
-            $this->output->set_content_type('application/json'); $this->output->set_output($payload);
+            $this->output->set_content_type('application/json'); 
+            $etag = md5($payload);
+            $this->output->set_header('ETag: '.$etag);
+            $this->output->set_header('Cache-Control: public, max-age=30');
+            $this->output->set_output($payload);
         } else {
             $csv = $this->exportservice->toCsv($rows);
-            $this->output->set_content_type('text/csv'); $this->output->set_output($csv);
+            $this->output->set_content_type('text/csv'); 
+            $etag = md5($csv);
+            $this->output->set_header('ETag: '.$etag);
+            $this->output->set_header('Cache-Control: public, max-age=30');
+            $this->output->set_output($csv);
         }
     }

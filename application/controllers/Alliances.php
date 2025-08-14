@@ -17,6 +17,7 @@ class Alliances extends MY_Controller {
     }
 
     public function index() {
+        if ($this->input->method(TRUE)==='GET') $this->output->cache(2);
         $rid = $this->realmId();
         [$a,$role] = $this->allianceservice->myAllianceWithRole($rid);
         $invites = $this->allianceservice->myInvites($rid);
