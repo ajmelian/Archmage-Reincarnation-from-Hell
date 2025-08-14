@@ -5,12 +5,16 @@
  * Extiende aquí con economía, investigación, hechizos, etc.
  */
 class Engine {
+    private Formula $formula;
 
     public function rng(int $seed): XorShift32 {
         return new XorShift32($seed);
     }
 
     public function resolveCombat(array $sideA, array $sideB, int $seed = 12345): array {
+        $CI =& get_instance();
+        $CI->load->library('Formula');
+        $this->formula = new Formula();
         $rng = $this->rng($seed);
         $log = [];
         $lossA = $lossB = [];
@@ -20,21 +24,21 @@ class Engine {
         $defA   = array_sum(array_map(fn($u)=>($u['defense'] ?? 0) * ($u['qty'] ?? 0), $sideA));
         $defB   = array_sum(array_map(fn($u)=>($u['defense'] ?? 0) * ($u['qty'] ?? 0), $sideB));
 
-        $dmgToA = max(0, (int)round(($powerB - $defA) * 0.15));
-        $dmgToB = max(0, (int)round(($powerA - $defB) * 0.15));
+        $dmgToA = $this->formula->baseDamage($powerB, $defA);
+        $dmgToB = $this->formula->baseDamage($powerA, $defB);
 
         $sumQtyA = array_sum(array_map(fn($x)=>$x['qty'] ?? 0, $sideA)) ?: 1;
         $sumQtyB = array_sum(array_map(fn($x)=>$x['qty'] ?? 0, $sideB)) ?: 1;
 
         foreach ($sideA as $u) {
-            $hp = max(1, (int)($u['hp'] ?? 1));
+            $hp = max(1, (int)($u['hp'] ?? $this->formula->unitHpDefault()));
             $share = $dmgToA > 0 ? max(0, (int)round($dmgToA * (($u['qty'] ?? 0) / $sumQtyA))) : 0;
             $jitter = $rng->uniformInt(-2, 2);
             $lost = max(0, min(($u['qty'] ?? 0), (int)floor(($share + $jitter) / $hp)));
             $lossA[$u['id'] ?? 'u'] = $lost;
         }
         foreach ($sideB as $u) {
-            $hp = max(1, (int)($u['hp'] ?? 1));
+            $hp = max(1, (int)($u['hp'] ?? $this->formula->unitHpDefault()));
             $share = $dmgToB > 0 ? max(0, (int)round($dmgToB * (($u['qty'] ?? 0) / $sumQtyB))) : 0;
             $jitter = $rng->uniformInt(-2, 2);
             $lost = max(0, min(($u['qty'] ?? 0), (int)floor(($share + $jitter) / $hp)));
