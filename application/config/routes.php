@@ -117,3 +117,7 @@ $route['ops/cache'] = 'ops/cache';
 $route['ops/backups'] = 'ops/backups';
 $route['healthz'] = 'health/live';
 $route['readyz'] = 'health/ready';
+
+$route['admin/economy_balance'] = 'admin/economy_balance';
+$route['api/v1/economy/preview'] = 'api/v1/economy_preview';
+$route['api/v1/economy/params'] = 'api/v1/economy_params';

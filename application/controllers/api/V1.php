@@ -3,7 +3,7 @@
 class V1 extends MY_ApiController {
     public function __construct() {
         parent::__construct();
-        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching']);
+        $this->load->library(['ArenaService','ResearchService','Wallet','TalentTree','Engine','Caching','EconomyService']);
         $this->load->config('performance');
     }
 
@@ -108,3 +108,18 @@ class V1 extends MY_ApiController {
         $this->json(['ok'=>true,'result'=>$res]);
     }
 }
+
+
+
+    // GET /api/v1/economy/preview
+    public function economy_preview() {
+        $realm = $this->currentRealm(); if (!$realm) $this->json(['ok'=>false,'error'=>'No realm'], 404);
+        $p = $this->economyservice->preview((int)$realm['id']);
+        $this->json(['ok'=>true,'preview'=>$p]);
+    }
+
+    // GET /api/v1/economy/params
+    public function economy_params() {
+        $rows = $this->db->order_by('key','ASC')->get('econ_params')->result_array();
+        $this->json(['ok'=>true,'params'=>$rows]);
+    }

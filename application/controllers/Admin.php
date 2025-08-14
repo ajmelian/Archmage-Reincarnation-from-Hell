@@ -79,3 +79,17 @@ class Admin extends CI_Controller {
         redirect('admin/users');
     }
 }
+
+
+    public function economy_balance() {
+        $this->load->library('EconomyService');
+        if ($this->input->method(TRUE)==='POST') {
+            $k = (string)$this->input->post('key', TRUE);
+            $v = (string)$this->input->post('value', TRUE);
+            if ($k!=='') $this->economyservice->setParam($k, is_numeric($v)?0+$v:$v);
+            redirect('admin/economy_balance');
+        }
+        $rows = $this->db->order_by('key','ASC')->get('econ_params')->result_array();
+        $mods = $this->db->order_by('created_at','DESC')->limit(100)->get('econ_modifiers')->result_array();
+        $this->load->view('admin/economy_balance', ['params'=>$rows,'mods'=>$mods,'admin'=>$this->admin]);
+    }
