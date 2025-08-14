@@ -1,20 +1,26 @@
-# v1.14.0 — Observabilidad (métricas + /metrics + panel)
+# v1.15.0 — Seguridad ampliada (2FA, sesiones 300s, RBAC)
 
 ## Añadido
-- **Tablas de métricas**:
-  - `metrics_counter` (contadores por ventana)
-  - `metrics_summary` (duraciones: count/sum/min/max por ventana)
-- **Librería** `Observability`:
-  - `inc(name, labels, delta)` y `observe(name, ms, labels)`
-  - `beginRequest(name, labels)` / `endRequest(status)` para instrumentar peticiones
-  - Export **Prometheus** en texto con `/metrics`
-  - `cleanup()` para purga por retención
-- **Instrumentación automática**:
-  - `MY_ApiController` (toda la API): **conteo** y **duración** por endpoint y status
-  - `MY_Controller` (páginas HTML): igual que API
-- **Panel Ops** `/ops/metrics` con Top endpoints HTML/API (última hora)
-- **CLI** `Obscli::cleanup` para compactar
+- **2FA (TOTP)** opcional con secretos Base32, verificación y **URI otpauth**. Gestión en `/account/security`:
+  - Activar (generar clave, confirmar con primer código) / Desactivar / **Códigos de respaldo** (8).
+  - Login paso 2 (`/auth/second_factor`) si 2FA está activo.
+- **Endurecimiento de sesiones** (CI3):
+  - `sess_driver=database`, `sess_expiration=300`, `sess_time_to_update=120`, `sess_regenerate_destroy=TRUE`.
+  - Regeneración en login y vinculación a User-Agent; headers de seguridad (HSTS, CSP, etc.).
+- **Bloqueo y rate limiting de login** con `SecurityService`:
+  - Contadores por IP y por usuario (reutiliza `rate_counters`).
+  - `login_attempts` + `locked_until` en `users` (desbloqueo automático o vía `Seccli unlock`).
+- **RBAC sencillo** (`roles`, `user_roles`) y librería `Acl` (grant/revoke/hasRole).
+
+## Hooks/Config
+- `application/config/security.php` con TOTP, login, sesión y headers.
+- Hook `SecurityHeaders` para CSP/HSTS/etc (activado en `config/hooks.php`).
+
+## Rutas
+- `/auth/login`, `/auth/logout`, `/auth/second_factor`, `/account/security`.
+
+## CLI
+- `Seccli unlock <email>` / `Seccli show <email>`.
 
 ## Notas
-- Determinista y **sin IA**. Compatible con Prometheus/Graphite vía `/metrics`.
-- Ajustes en `application/config/observability.php`: ventana, retención y namespace Prom.
+- Determinista y **sin IA**. Ajusta las políticas en `security.php` según tu despliegue.

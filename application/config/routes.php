@@ -104,3 +104,8 @@ $route['api/v1/battle/simulate'] = 'api/v1/battle_simulate';
 
 $route['metrics'] = 'metrics/index';
 $route['ops/metrics'] = 'ops/metrics';
+
+$route['auth/login'] = 'auth/login';
+$route['auth/logout'] = 'auth/logout';
+$route['auth/second_factor'] = 'auth/second_factor';
+$route['account/security'] = 'account/security';
