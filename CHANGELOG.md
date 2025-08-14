@@ -1,23 +1,22 @@
-# v1.6.0 — Gestión de Edificios (UI completa) + Colas
+# v1.7.0 — Investigación (UI + colas) — determinista
 
 ## Añadido
-- **Definiciones de edificios** (`building_def`) con coste base oro/maná, tiempo y crecimiento geométrico por unidad.
-- **Servicio** `BuildingService`: `quote`, `queue`, `cancel` (reembolso configurable), `demolish` (reembolso parcial opcional).
-- **UI** `/buildings`:
-  - Lista defs con descripción, poseído, costes base y growth.
-  - Formularios para **añadir a cola** y **demoler**.
-  - **Cola** visible con acción **cancelar** y fecha de finalización.
-- **Logs** `building_logs` para auditoría.
+- **Definiciones** `research_def` con `base_cost_*`, `time_sec`, `growth_rate`, `max_level` y **prerrequisitos** (JSON).
+- **Servicio** `ResearchService`:
+  - `quote()` calcula coste/tiempo desde nivel actual (incluye colas) hasta un `target_level`.
+  - `queue()` descuenta **RP** (research), oro y maná, y encola con `finish_at` acumulado.
+  - `cancel()` reembolsa según `config/research.php`.
+  - `level()` devuelve el nivel efectivo (considera colas).
+- **UI** `/research`:
+  - Árbol con nivel actual, costes base y growth; formulario para fijar **nivel objetivo**.
+  - **Cola** visible con opción **cancelar**.
+- **Logs** `research_logs` (queue/cancel/finish).
 
 ## Integración
-- El **Tick (S14)** aplica `building_queue → buildings` automáticamente al llegar `finish_at`.
-- Costes deducidos de **cartera** (oro/maná) al encolar; cancelación devuelve según `queue_cancel_refund`.
+- El **Tick (S14)** ya procesa `research_queue → research_levels` y puede llamar `ResearchService::markFinished()` si se desea log adicional.
 
 ## Configuración
-- `application/config/buildings.php`:
-  - `demolish_refund_rate` (0..1)
-  - `queue_cancel_refund` (0..1)
+- `application/config/research.php`: `queue_cancel_refund` (0..1, por defecto 1.0).
 
 ## Notas
-- Determinista y **sin IA**.
-- Ajusta `growth_rate` y costes en `building_def` a tu diseño real; el seed incluido es un ejemplo mínimo.
+- 100% determinista, sin IA. RP proviene del tick (recurso `research` en `wallets`).

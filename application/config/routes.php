@@ -49,3 +49,7 @@ $route['buildings'] = 'buildings/index';
 $route['buildings/queue'] = 'buildings/queue';
 $route['buildings/cancel/(:num)'] = 'buildings/cancel/$1';
 $route['buildings/demolish'] = 'buildings/demolish';
+
+$route['research'] = 'research/index';
+$route['research/queue'] = 'research/queue';
+$route['research/cancel/(:num)'] = 'research/cancel/$1';

@@ -9,3 +9,5 @@ $lang['diplomacy']='Diplomacia';
 $lang['inventory_wallet']='Inventario & Cartera';
 
 $lang['buildings']='Edificios';
+
+$lang['research']='Investigación';
