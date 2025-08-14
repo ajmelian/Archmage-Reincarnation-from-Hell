@@ -5,6 +5,7 @@ class ChatService {
         $this->CI =& get_instance();
         $this->CI->load->database();
         $this->CI->load->config('chat');
+        $this->CI->load->library('ModerationService');
     }
 
     private function realm(): ?array {
@@ -51,8 +52,13 @@ class ChatService {
         $text = trim($text);
         $max = (int)($this->CI->config->item('chat')['max_len'] ?? 400);
         if ($text==='' || mb_strlen($text) > $max) throw new Exception('Invalid text length');
+        list($ok,$textOrErr) = $this->CI->moderationservice->filterText($text);
+        if (!$ok) throw new Exception($textOrErr);
+        $text = $textOrErr;
         // fetch channel and authorize
+        $this->CI->moderationservice->checkRate($realmId, 'chat_post');
         $ch = $this->CI->db->get_where('chat_channels',['id'=>$channelId])->row_array();
+        if ($ch) $this->CI->moderationservice->assertCanChat($realmId, $ch['type']);
         if (!$ch) throw new Exception('Channel not found');
         if (!$this->canReadChannel($realmId, $ch)) throw new Exception('Not allowed');
         $this->CI->db->insert('chat_messages',[
@@ -62,7 +68,9 @@ class ChatService {
     }
 
     public function poll(int $realmId, int $channelId, int $afterId=0, int $limit=50): array {
+        $this->CI->moderationservice->checkRate($realmId, 'chat_post');
         $ch = $this->CI->db->get_where('chat_channels',['id'=>$channelId])->row_array();
+        if ($ch) $this->CI->moderationservice->assertCanChat($realmId, $ch['type']);
         if (!$ch) throw new Exception('Channel not found');
         if (!$this->canReadChannel($realmId, $ch)) throw new Exception('Not allowed');
         $limit = min(max(1,$limit), (int)($this->CI->config->item('chat')['poll_batch'] ?? 50));
@@ -86,8 +94,14 @@ class ChatService {
 
     // Direct messages (privados 1:1)
     public function sendDM(int $fromRealmId, int $toRealmId, string $subject, string $body): int {
+        $this->CI->moderationservice->checkRate($fromRealmId, 'dm_send');
+        $this->CI->moderationservice->assertCanDM($fromRealmId);
+        if ($this->CI->moderationservice->recipientBlocksSender($fromRealmId, $toRealmId)) throw new Exception('Recipient blocks you');
         $subject = trim($subject); $body = trim($body);
         if ($body==='') throw new Exception('Body required');
+        list($ok,$textOrErr) = $this->CI->moderationservice->filterText($body);
+        if (!$ok) throw new Exception($textOrErr);
+        $body = $textOrErr;
         $this->CI->db->insert('dm_messages',[
             'from_realm_id'=>$fromRealmId,'to_realm_id'=>$toRealmId,
             'subject'=>$subject ?: null, 'body'=>$body, 'created_at'=>time()

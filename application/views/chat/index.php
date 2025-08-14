@@ -34,7 +34,7 @@ function render(rows) {
   rows.forEach(r => {
     const div = document.createElement('div');
     const time = new Date(r.created_at*1000).toLocaleTimeString();
-    div.innerHTML = `<span class="text-muted small">[${time}]</span> <b>${r.realm_name}</b>: ${escapeHtml(r.text)}`;
+    div.innerHTML = `<span class="text-muted small">[${time}]</span> <b>${r.realm_name}</b>: ${escapeHtml(r.text)} <a class=\"text-danger small\" href=\"<?php echo site_url('mod/report_chat/'); ?>${r.id}\">(reportar)</a>`;
     logEl.appendChild(div);
     lastId = r.id;
   });

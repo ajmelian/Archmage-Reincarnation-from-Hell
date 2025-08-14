@@ -68,3 +68,8 @@ $route['messages/compose'] = 'messages/compose';
 $route['messages/send'] = 'messages/send';
 $route['messages/read/(:num)'] = 'messages/read/$1';
 $route['messages/delete/(:num)'] = 'messages/delete/$1';
+
+$route['mod/block/(:num)'] = 'mod/block/$1';
+$route['mod/unblock/(:num)'] = 'mod/unblock/$1';
+$route['mod/report_chat/(:num)'] = 'mod/report_chat/$1';
+$route['mod/report_dm/(:num)'] = 'mod/report_dm/$1';

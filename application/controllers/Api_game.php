@@ -20,7 +20,7 @@ class Api_game extends CI_Controller {
 
     private function rate(string $route, int $uid): bool {
         // simple window of 60s, limit 60
-        $win = (int)(time() // 60 * 60);
+        $win = (int)(time() / 60);
         $row = $this->db->get_where('api_rate', ['user_id'=>$uid,'route'=>$route,'window_start'=>$win])->row_array();
         if ($row && $row['count'] >= 60) return FALSE;
         if ($row) $this->db->where('id',$row['id'])->update('api_rate', ['count'=>$row['count']+1]);

@@ -16,3 +16,5 @@ $lang['arena']='Arena';
 
 $lang['chat']='Chat';
 $lang['messages']='Messages';
+
+$lang['moderation']='Moderation';
