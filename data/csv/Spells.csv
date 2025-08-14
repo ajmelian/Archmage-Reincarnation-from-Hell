@@ -1,0 +1,122 @@
+Name,Sphere,Rank,Type,Target,Effect
+Healing,1,Simple,Instant Battle,Self-Army,Heals your units' HP
+Bless,1,Simple,Instant Battle,Self-Army,"Dependant on spell level, 1 Random Group gains accuracy."
+Armor of Light,1,Simple,Instant Battle,Self-Army,One random group become immune to certain Nether magic.
+Protection from Missle,1,Simple,Instant Battle,Self-Army,Protects random group from all missle attacks.
+Summon Pegasus,1,Simple,Summon,Self,Summons a band of Pegasi to join your army.
+Dispel Magic,1,Average,Uncastable,None,Aids in dispelling spells.
+Summon Angel,1,Average,Summon,Self,Summons a band of Angels to join your army.
+Platinum Hand of Healing,1,Average,Instant Battle,Self-Army,Heals all units' HP better than Healing.
+Protection from Evil,1,Average,Enchantment,Self,Gives protection vs. Nether Units and Spells.
+Holy Word,1,Average,Instant Battle,Enemy Army,Destroys some of the enemy's undead.
+Summon Unicorn,1,Complex,Summon,Self,Summons a band of unicorn to join your army.
+Resist Elements,1,Complex,Enchantment,Self,Reduces effeciveness of elemental spells cast you.
+Sword of Light,1,Complex,Instant Battle,Self-Army,Raises attack power of all melee units vs. undead.
+Locate Artifact,1,Average,Instant,Self,Gives you 1 random artifact.
+Summon Archangel,1,Complex,Summon,Self,Summons a band of Archangels to join your army.
+Gate,1,Complex,Instant,Self,Summons random amount of various white creatures.
+Blinding Flash,1,Complex,Instant Battle,Enemy-Army,All enemy units' ability to fight is hindered.
+Resurrection,1,Complex,Instant Battle,Self-Army,"Depending on spell level, resurrect various slain units."
+Love and Peace,1,Ultimate,Enchantment,Self,"Increases unit hp by 30%, decreases unit AP by 30%, doubles gold income, and summons preachers."
+Holy Light,1,Ultimate,Enchantment,Self,Destroys random amount of undead in battle.
+Descent of Holy Being,1,Ultimate,Summon,Self,Summons a band of Domions to join your army.
+Miracle,1,Ultimate,Instant Battle,Self,"With small chance of success, reduces losses to 0."
+Heavenly Protection,1,Ancient,Enchantment/White Only,Self,Full protection from evil magic.
+Battle Chant,2,Complex,Enchantment,Self,Increases army's Strength and Power; Decreases HP.
+Blaze,2,Simple,Instant Battle,Enemy Army,Causes fire damage to 1 random enemy unit.
+Call Lightning,2,Complex,Enchantment,Enemy,Destroys enemy population.
+Call Lizardman,2,Simple,Summon,Self,Summons a band of Lizardmen.
+Chain Lightning,2,Complex,Instant Battle,Enemy army,Inflichts heavy lightning damage on all enemy units.
+Destroy Artifact,2,Complex,Instant,Enemy,Destroys up to 3 random artifacts from target.
+Disintegrate,2,Complex,Instant Battle,Enemy Army,Inflicts heavy fire damage on 1 random enemy unit.
+Fireball,2,Average,Instant Battle,Enemy Army,Inflicts fire damage on 1 random enemy unit.
+Flame Arrow,2,Simple,Instant Battle,Self Army,Allows your missle creatures to inflict fire damage.
+Flame Blade,2,Complex,Instant Battle,Self Army,Allows bladed units to inflict fire damage.
+Flame Shield,2,Ultimate,Instant Battle,Self Army,Inflicts fire damage upon any unit attacking affected unit.
+Force Bolt,2,Simple,Instant Battle,Enemy Army,Causes one random group to fight less effectively.
+Giant Strength,2,Average,Instant Battle,Self Army,Increases Power and Strength of 1 random unit.
+Gravity Pull,2,Complex,Instant Battle,Enemy Army,Enemy units are hindered during battle. Flying units receive massive damage.
+Inferno,2,Ultimate,Instant Battle,Enemy Army,Inflicts mortal fire damage against each enemy unit.
+Lightning Strike,2,Average,Instant Battle,Enemy Army,Causes heavy lightning damage to 1 random enemy unit.
+Meteor Storm,2,Complex,Enchantment,Enemy,Destroys enemy buildings and population.
+Stun,2,Complex,Instant Battle,Enemy Army,Decreases the capacity of all units to fight.
+Summon Chimera,2,Complex,Summon,Self,Summons a band of Chimera.
+Summon Hellhound,2,Average,Summon,Self,Summons a band of Hellhounds.
+Summon Hydra,2,Complex,Summon,Self,Summons a band of Hydras.
+Summon Red Dragon,2,Ultimate,Summon,Self,Summons a band of Red Dragons.
+Summon Salamander,2,Average,Summon,Self,Summons a band of Salamanders.
+Volcano Eruption,2,Ultimate,Instant,Enemy,Destroys enemy land and population on grandest scale. Use will place target in protection.
+Animate Ghoul,3,Average,Summon,Self,Summons a band of Ghouls.
+Animate Skeletons,3,Simple,Summon,Self,Summons a band of Skeletons.
+Animate Zombie,3,Simple,Summon,Self,Summons a band of Zombies.
+Battle Lust,3,Complex,Instant Battle,Self Army,Increases the offens while decreasing the defense of your army.
+Black Death,3,Ultimate,Enchantment,Self,Cause a plague that kills the Pop. and Army of the caster and anyone attacked or attacking him.
+Black Stabbath,3,Ultimate,Enchantment,Self,Gives 666 of each Zombie/Skeleton per turn and Prot. From Holy attacks for undead.
+Blacken Soul,3,Simple,Instant Battle,Enemy Army,Kills and Paralyzes 1 random unit.
+Blood Curse,3,Complex,Instant Battle,Self Army,All melee creatures cause uncurable wounds.
+Blood Ritual,3,Complex,Enchantment,Self,Creates Ghouls at a loss of population for 200 turns.
+Contract of the Soul,3,Ultimate,Enchantment,Self,Summons the Hero Devil Prince who leads a band of devils. Spell only ends when casters population reaches 0.
+Corruption,3,Ancient,Instant Battle,Ascendant Enemy,"Turns enemy's Dominions, Archangels and Angels into The Fallen."
+Curse,3,Simple,Instant Battle,Enemy Army,Decreases the Accuracy and Strength of 1 random unit.
+Death and Decay,3,Complex,Enchantment,Enemy,Destroys targets land and pop.
+Dreams of Seduction,3,Ultimate,Instant Battle/Summon,Self,Summons a band of Succubi to fight in 1 battle. Entices enemy's units to join your army.
+Fear,3,Simple,Instant Battle,Enemy Army,Weakens 1 random enemy units attacks and counters.
+Foul Water,3,Complex,Instant Battle,Self Melee Units,All melee attacks become poisonous.
+Gaze of Death,3,Complex,Instant Battle,Enemy Army,Kills some creatures from 1 random enemy unit.
+Kiss of the Vampire,3,Complex,Instant Battle,All Units,Bestos Steal Life upon each unit in your army.
+Night of the Living Dead,3,Complex,Instant/Summon,Self,Sacrifices Pop. for a number of random undead.
+Shroud of Darkness,3,Average,Enchantment,Self,Protection from Ascendant Magic.
+Summon Lich,3,Complex,Summon,Self,Summons a band of Liches.
+Summon Vampire,3,Complex,Summon,Self,Summons a band of Vampire.
+Summon Wraith,3,Average,Summon,Self,Summons a band of Wraith.
+Touch of Necromancy,3,Complex,Enchantment,Self,"Based on Spell Level, raises number of slain from both armies which join yours."
+Call Sirene,4,Average,Summon,Self,Summons a band of Sirenes.
+Concentration,4,Average,Enchantment,Self,Increases casting success while decreasing research time.
+Confuse,4,Average,Enchantment,Enemy,Decreases target's chance for spell success.
+Conjure Elemental,4,Ultimate,Summon,Self,"Summons Ice, Air, or Water Elementals Randomly"
+Double Time,4,Average,Instant Battle,1 Random Unit,"1 Random unit becomes faster, more accurate, and more efficient."
+Feet of Hermes,4,Average,Instant Battle,1 Random Unit,Improves the evasiveness of 1 random unit.
+Flight,4,Complex,Instant Battle,1 Random Unit,Grants flying to 1 random unit.
+Fog Cloud,4,Simple,Instant Battle,All Units,Reduces the hit chance of both armies.
+Fool's Gold,4,Ultimate,Instant,Enemy,Steals random amount of gold from target.
+Hallucination,4,Ultimate,Enchantment,Self,Prevents success attack on first attempt. (High Chance of spell Failure.)
+Invisibility,4,Average,Instant Battle,1 Random Unit,Grants First Strike to 1 random unit.
+Laziness,4,Complex,Enchantment,Enemy,Causes target to lose population.
+Lovesick,4,Complex,Instant Battle,1 Random Unit,"Causes 1 random group to appear irresistable, leaving the enemy unable to attack that unit."
+Mental Thrash,4,Average,Instant Battle,Enemy Army,Causes psychic damage to 1 random enemy unit.
+Mind Bar,4,Complex,Enchantment,Self,Increases resistance to magic.
+Mirage Monster,4,Complex,Instant Battle/Summon,Self,Summons a band of Shadow Monsters to fight for you for 1 battle.
+Paralyze,4,Complex,Instant Battle,Enemy Army,Paralyzes 1 random enemy unit.
+Phantasm Magic,4,Simple,Instant Battle,Enemy Army,Causes Psychic Damage to 1 random enemy unit.
+Scrying Mirror,4,Average,Instant,Enemy,"Reveals vital data on target. Land, Army, Income, etc."
+Sleep,4,Simple,Instant Battle,Enemy Army,Decreases effectiveness of 1 random enemy unit.
+Slow,4,Complex,Instant Battle,Enemy Army,Decreases initiative of enemy army. Slower units may not attack at all.
+Steal Artifact,4,Complex,Instant,Enemy,Steals 1 random artifact from target.
+Summon Mind Ripper,4,Complex,Summon,Self,Summons a band of Mind Rippers.
+Summon Sprite,4,Simple,Summon,Self,Summons a band of Sprites.
+Summon Sylph,4,Simple,Summon,Self,Summons a band of Sylph.
+Temporal Stasis Field,4,Complex,Enchantment,Enemy,Causes the target to have to wait longer to recieve turns. Caster recieves no turn for the duration of spell.
+Wish,4,Ultimate,Instant,Self,"Grants caster items, gold, pop., land, units, or takes them away."
+Wall of Silence,4,Ancient,Enchantment,Self,Blocks all spells cast on or by caster. Effects anyone attacking or attacked by caster.
+Call Hurricane,5,Complex,Instant Battle,Self,Makes flying creatures more susceptible to attacks.
+Animal Summoning,5,Simple,Summon,Self,Summons a band of gorillas.
+Call Pheonix,5,Ultimate,Summon,Self,Summons a band of Pheonixes.
+Call Treants,5,Complex,Summon,Self,Summons a band of Treants.
+Enlarge Animal,5,Average,Instant Battle,Self-Animals,Increases the power of animals in your army.
+Eye of the Eagle,5,Simple,Instant Battle,Self-Elves,Increases effectiveness and accuracy of Elven Units.
+Nature's Cure,5,Average,Instant Battle,Self-Army,Heals units' HP.
+Nature's Favor,5,Ultimate,Enchantment,Self,"Grants a pop. bonus, Weather Summoning, and some random units."
+Nature's Lore,5,Ultimate,Enchantment,Self,Grants 1 acre per turn while reducing mana and geld income by 30%.
+Plant Growth,5,Complex,Enchantment,Self,Increases the power of Plant Creatures.
+Regeneration,5,Complex,Instant Battle,Self-Army,Causes your units to regenerate HP.
+Rust Armor,5,Complex,Instant Battle,Enemy-Army,Weakens Armored Units.
+Serenity,5,Ultimate,Instant,Enemy,Dispells all spells on target.
+Stunning Beauty,5,Average,Instant Battle,Self-Elves,Increases the beauty of elves making the enemy less effective.
+Summon Dryad,5,Simple,Summon,Self,Summons a band of Dryads.
+Summon Locust Swarm,5,Complex,Enchantment,Enemy,Reduces the target population to 1/2 for duration of spell.
+Summon Nymph,5,Average,Summon,Self,Summons a band of Nymphs.
+Summon Werebear,5,Average,Summon,Self,Summons a band of Werebears.
+Sunray,5,Complex,Enchantment,Self,Increased protection from Nether and Phantasm. Hinders performance of Nether and Phantasm Units.
+Weather Summoning,5,Complex,Enchantment,Self,Increases production and geld from farmers.
+Web of the Spider Woman,5,Simple,Instant Battle,1 Random Enemy Unit,Lowers initiative target enemy unit.
+Wooden Soul,5,Simple,Instant Battle,1 Random Unit,Adds limited protection to 1 random unit.

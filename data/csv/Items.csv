@@ -1,0 +1,104 @@
+Item,Type,Target,Description
+Ash of Invisibility,Lesser,All Self Units,Believed to increase units init. or gives first strike.
+Blood Stained Map,Lesser,Self,Steals 1 of 5 Holy Grails.
+Book of Golem Summoning,Lesser,Self,Summons Iron Golems.
+Book of Prophecy,Lesser,Enemy,Convinces a percentage of enemy population to defect to your country.
+Bottle of Eversmoking,Lesser,All Orc/All Enemy Orcs,Enchances the fighting power and accuracy of Orcs.
+Brooch of Protection,Lesser,All Units,Protects all of your units for duration of battle.
+Bubble Wine,Lesser,All Units,Increases toughness of units while reducing accuracy.
+Candle of Sleeping,Lesser,All Enemy Units,Makes enemy units less effective in battle.
+Capsule Monster,Lesser,Self/Battle,Summons Capsule Monsters for duration of one battle.Carpet of Flying
+Coffin,Lesser,Self,Summons a number of 1 random set of undead.
+Cosmetics,Lesser,Humans/Elves,Increases beauty distracting and reducing enemy effectiveness for one battle.
+Crystal Ball,Lesser,Enemy,Displays details of enemy. (Same as Scrying Mirror Spell.)
+Dozens of Silver Tipped Arrows,Lesser,Missile Units,Increases attack of missile units against undead and demons.
+Drums of War,Lesser,All Enemy Units,Reduces effectivenss of enemy units in one battle.
+Figurine of the Ice Queen,Lesser,Enemy Units,Hits various number of enemy units with cold attack.
+Flasks of Holy Water,Lesser,Enemy Undead,Inflicts holy damage to undead units during one battle.
+Head of Medusa,Lesser,1 enemy group,Kills 1 - 10 units in a single group.
+Horn of Valhalla,Lesser,Self,Summons various amounts of Knights.
+Javelin of Lightning Bolt,Lesser,Enemy Units,Inflicts lightning damage to enemy units.
+Letter of the Thieves Guild,Lesser,Enemy,Steals items
+Official List of Demands,Lesser,Enemy,Targeted mage loses gold
+Magical Compass,Lesser,Self,Used to discover 100 acres of land.
+Mana Crystal,Lesser,Self,Generates mana.
+Mana Vortex,Lesser,Enemy,Portion of target's mana is destroyed.
+Missle Shield,Lesser,All Self Units,Protects all of your units from missile attacks for one battle.
+Monkey Brain,Lesser,Psychic Units,Enhances the psychic attack abilities.
+Oil Flasks,Lesser,Enemy Units,Covers enemy units in oil making them more suseptible to fire attacks.
+Ointment of Healing,Lesser,All Self Units,Reduces damage and poisonous effect to creatures.
+Peaches,Lesser,Self,Summons Gorillas.
+Pipes of the Sewer,Lesser,Enemy,Target loses 500k gold and 15k population.
+Potion of Valor,Lesser,Human Units,Enhances fighting all around for human units.
+Pouch of Herbs,Lesser,All Units,Aids in regeneration during battle.
+Powder Keg,Lesser,Enemy Units,Inflicts fire damage.
+Ring of Animal Command,Lesser,Enemy and Self Units,Prevents animal units from attacking you.
+Rotten Food,Lesser,Enemy,Kills target's population.
+Sage Stone,Lesser,Self,Generates one to two million gold.
+Satchel of Mist,Lesser,Enemy and Self Units,Reduces accuracy of both armies by estimated 10 percent.
+Scroll of Protection from Fire,Lesser,Self Units,Reduces fire damage in battle.
+Spider's Web,Lesser,Enemy Units,Lowers target units' initiative and may also increase fire damage.
+Staff of Illusion,Lesser,Enemy Units,Each unit has a 50 percent chance of believe illusion and suffer psychic damage.
+Strange Metallic Can,Lesser,Units,Heals 10 percent of slain units.
+Total Newbie Handbook,Lesser,Self,Summons Frogs or Squirrels.
+Teasure Chest,Lesser,Self,Used to locate gold
+Vial of Venom,Lesser,Self Units,All melee units inflict poison damage.
+Voodoo Doll,Lesser,Enemy,Target enemy loses some turns.
+Wine of Three Whips,Lesser,Self,Increases population by 10%.
+Altar of Blood,Unique,Self Permanent,Increases mana income by 5k per turn while decreasing pop by 5k per turn.
+Ancient Staff of Pure Quartz,Unique,Self Permanent Battle,Reduces casting cost by 20 percent; increases attack power and summoning by 5 percent.
+Ancient Tome,Unique,Self One Use,Instantly research current spell. Recommend on Ultimates or Armageddon spells.
+Apparatus,Unique,Self Permanent Summon,Summons 100 Hellhounds
+Archmage Strategy Guide,Unique,Self One Use,Decreases casting cost by 10% and reduces chance of spell failure.
+Atomic Bomb,Unique,Enemy One Use,Destroys 25% of target's mana
+Basin of Far Seeing,Unique,Self Permanent,Grants the owner unlimited scryes.
+Black Ankh,Unique,Self Permanent,Increases black units' resistance to holy by 50% while weakening white units.
+Blue Ice,Unique,Self Permanent,Reduces all units attack power by 30% while increases ice attacks by 50% at a cost of 5k mana.
+Burning Incense,Unique,Self Permanent,Decreases the casting cost of spells by 10% with a decreased chance of failure.
+Chaos Ward,Unique,Self Permanent,Reduces Eradication damage.
+Crimson Banner,Unique,Self Permanent Battle,Increases units' attack power.
+Dead Sea Scroll,Unique,Self One Use White,"When used by a white mage, have a chance to learn the white ancient spell."
+Dragon Slayer,Unique,Self One Use,10% increase in Attack Power.
+Efreeti Bottle,Unique,Self One Use,Grants 2 heroes
+Egg of Time,Unique,Self One Use,Grants 25 to 50 Turns.
+Excaliber,Unique,Self Permanent,Increases units' attack power by 15%.
+Hand of Negation,Unique,Self Permanent,Dispells all enchantments on target reguardless of barriers. Can only be used once every 200 turns.
+Hell Fire,Unique,Self Permanent,Gives you resistance to fire
+Helm of ESP,Unique,Self Permanent,Believed to increase psychic attacks by 50%.
+Holy Grail,Unique,Self Permanent Temporary.,There is a debate over how many of the 5 Holy Grails are real. The real one(s) are believed to resurrect 15% of slain units and grants some bonus to Knights. Fakes usually disappear when the Holy Grail is used by someone else.
+Iron Golem,Unique,Self Permanent,Summons the Master of Golems to tend your land. You earn 3 acres of farm per turn at a cost of 5k mp per turn.
+Lipstick of Enslavement,Unique,Self One Use,With luck
+Lucky Charm,Unique,Self Permanent,Owner is blessy by Lady Luck permanently. +10% resistance to all colors and increased casting success
+Magic Mirror,Unique,Self One Use,Summons two female heroines with an upkeep of 5k for the mirror. Use it fast.
+Mirror of the Grey Witch,Unique,Self Permanent,Reflects 33% of spells cast on you back to the caster at a cost of 5k mp per turn. Believed to force top stacks to attack it's own army a third of the time.
+Nether Parchment,Unique,Self One Use Black,"When used by a black mage, have a chance to learn the black ancient spell."
+Orb of Protection,Unique,Self One Use,Covers your country in a forcefield blocking out all spells and attacks for 24 hours.
+Pan's Flute,Unique,Self Permanent,Decreases enemy initiative by 10%. Good combo with Fog Cloud or Satchel of Mist.
+Pouch of Infinite Wealth,Unique,Self Permanent,Double gold income per turn.
+Ring of Amethyst,Unique,Self Permanent,Reduces research time in half.
+Ring of Djinni Summoning,Unique,Self One Use,Casts Wish 6 times and grants owner Efreeti Bottle.
+Sceptre of Rulership,Unique,Self Permanent,Believed to Increases your units' hp by 10% on 30% of all battles.
+Scroll of Insight,Unique,Self One Use Blue,"When used by a blue mage, have a chance to learn the blue ancient spell."
+Skull Ring,Unique,Self Permanent,Believed to increase your mana by 10% while reducing your pop by 1%.
+Sinner,Unique,Self Permanent,Increases resistance to magic while decreasing your ability to use it each time.
+Soul Eater,Unique,Self Permanent,Believed to reduce your army's hp by 5% for undead and 20% for the rest while granting random percent increase to fire
+St. Nara's Lock of Hair,Unique,Self Permanent Battle,Bestows Holy Word and Protection from Undead on owner. (10% resistance to all colors.)
+Staff of the Archmage,Unique,Self Permanent,Inflicts lightning
+Spectacles of True Seeing,Unique,Self Permanent Battle,Owner gains 75% resistance to blue.
+Thor's Hammer,Unique,Self Permanent,Said to reduce target army's attack power by 25% and hp by 50%.
+Thunder Blade,Unique,Self Permanent,Adds lightning to units' attacks (+50% for Air Elem.) while adding or increasing resistance to lightning.
+Wand of Moon,Unique,Self Permanent,Inflicts lightning
+Wings of Glory,Unique,Self Permanent,Increases the attack power of Angelsy by 15% for white mages and 10% for non-whites.
+World Peace,Unique,Self Permanent,Gain 40% more gold per turn
+Scroll of Timewarp,Archaic,Self One Use,Grants user 25 turns.
+Hourglass of Time,Archaic,Self One Use,Unknown
+Sundial of Timekeeping,Archaic,Self One Use,Unknown
+Gold Watch,Archaic,Self One Use,Unknown
+Sun Stone,Archaic,Permanent,Unknown
+Moon Stone,Archaic,Permanent,Unknown
+Satanic Symbol,Archaic,Permanent,Unknown
+Black and White Feather,Archaic,Permanent,Unknown
+Leaf of the World Tree,Archaic,Permanent,Unknown
+Eden Garden Creation Kit,Archaic,Permanent,Unknown
+Silver Pentacle Pendant,Archaic,Permanent,Unknown
+Minor Indulgence,Special,Self One Use,Dispells any and all spells cast upon you including spells from gods. (Will not help on Mercy's Spells.)

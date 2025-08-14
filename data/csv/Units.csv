@@ -1,0 +1,101 @@
+Id,Name,Sphere,Race
+,,,
+1.0,angel,1.0,1.0
+2.0,archangel,1.0,1.0
+3.0,astral magician,1.0,2.0
+4.0,catapult,1.0,3.0
+5.0,crusader,1.0,3.0
+6.0,dominion,1.0,1.0
+7.0,high priest,1.0,3.0
+8.0,knight,1.0,3.0
+9.0,knight templar,1.0,3.0
+10.0,paladin,1.0,3.0
+11.0,pegasus,1.0,4.0
+12.0,preacher,1.0,3.0
+13.0,soul speaker,1.0,2.0
+14.0,spirit warrior,1.0,2.0
+15.0,titan,1.0,5.0
+16.0,unicorn,1.0,6.0
+17.0,chimera,2.0,7.0
+18.0,dwarven deathseaker,2.0,8.0
+19.0,dwarven elite,2.0,8.0
+20.0,dwarven warrior,2.0,8.0
+21.0,efreeti,2.0,6.0
+22.0,fire elemental,2.0,6.0
+23.0,fire giant,2.0,5.0
+24.0,hell hound,2.0,4.0
+25.0,hydra,2.0,9.0
+26.0,lizardman,2.0,9.0
+27.0,ogre,2.0,5.0
+28.0,red dragon,2.0,7.0
+29.0,salamander,2.0,6.0
+30.0,troglodyte,2.0,9.0
+31.0,wyvern,2.0,7.0
+32.0,cave troll,3.0,10.0
+33.0,dark elf magician,3.0,11.0
+34.0,demon knight,3.0,12.0
+35.0,devil,3.0,12.0
+36.0,fallen angel,3.0,1.0
+37.0,fallen archangel,3.0,1.0
+38.0,fallen dominion,3.0,1.0
+39.0,gargoyle,3.0,13.0
+40.0,ghoul,3.0,14.0
+41.0,horned demon,3.0,12.0
+42.0,imp,3.0,12.0
+43.0,lich,3.0,14.0
+44.0,orc raider,3.0,15.0
+45.0,orcish archer,3.0,15.0
+46.0,shadow,3.0,14.0
+47.0,skeleton,3.0,14.0
+48.0,succubus,3.0,12.0
+49.0,unholy reaver,3.0,12.0
+50.0,vampire,3.0,14.0
+51.0,wolf raider,3.0,15.0
+52.0,wraith,3.0,14.0
+53.0,zombie,3.0,14.0
+54.0,air elemental,4.0,6.0
+55.0,djinni,4.0,6.0
+56.0,ice elemental,4.0,6.0
+57.0,laviathon,4.0,5.0
+58.0,medusa,4.0,9.0
+59.0,mind ripper,4.0,16.0
+60.0,psychic wisp,4.0,6.0
+61.0,shadow monster,4.0,17.0
+62.0,sirene,4.0,18.0
+63.0,sprite,4.0,18.0
+64.0,sylph,4.0,6.0
+65.0,water elemental,4.0,6.0
+66.0,creeping vines,5.0,19.0
+67.0,druid,5.0,3.0
+68.0,dryad,5.0,18.0
+69.0,earth elemental,5.0,6.0
+70.0,elven archer,5.0,11.0
+71.0,elven magician,5.0,11.0
+72.0,faerie dragon,5.0,7.0
+73.0,gorilla,5.0,4.0
+74.0,griffon,5.0,4.0
+75.0,mandrake,5.0,19.0
+76.0,nymph,5.0,18.0
+77.0,phoenix,5.0,6.0
+78.0,swanmay,5.0,3.0
+79.0,treant,5.0,19.0
+80.0,werebear,5.0,4.0
+81.0,militia,6.0,3.0
+82.0,phalanx,6.0,3.0
+83.0,pikeman,6.0,3.0
+84.0,archer,6.0,3.0
+85.0,cavalry,6.0,3.0
+86.0,iron golem,6.0,13.0
+87.0,mercenary,6.0,3.0
+88.0,renegade wizard,6.0,3.0
+89.0,assassin,6.0,3.0
+90.0,bounty hunter,6.0,3.0
+91.0,starving peasant,6.0,3.0
+92.0,war hound,6.0,4.0
+93.0,falcon,6.0,4.0
+94.0,trained elephant,6.0,4.0
+95.0,fanatic,6.0,3.0
+96.0,capsule monster,6.0,4.0
+97.0,sheep,6.0,4.0
+98.0,frog,6.0,4.0
+99.0,squirrel,6.0,4.0
