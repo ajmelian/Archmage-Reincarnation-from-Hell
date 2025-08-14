@@ -1,27 +1,26 @@
-# v1.1.0 — Progresión de héroes (XP/Niveles/Talentos) + Rarezas/Conjuntos de ítems + Tablas de Drop
+# v1.2.0 — Mercado (Auction House) + Trade directo + Anti-abuso económico
 
 ## Añadido
-- **Progresión de Héroes**
-  - Tabla `hero_progress`: niveles, XP y **puntos de talento**.
-  - Librería `HeroProgress`: ganar XP, subir de nivel y asignar puntos.
-  - UI `/heroes`: listado con nivel/XP/puntos y asignación de talentos.
-- **Talentos**
-  - `talent_def`: talentos con `max_rank` y `effects` (JSON).
-  - `hero_talents`: rangos por héroe/reino; asignación controlada (cap y puntos).
-  - Librería `TalentTree`: obtención y **agregación de bonos** por talento.
-- **Ítems avanzados**
-  - `item_def` ahora soporta **`rarity`** (`common|uncommon|rare|epic|legendary`) y `set_id`.
-  - `item_set_def`: definición de **sets** con `bonuses` por nº de piezas.
-- **Botín**
-  - `drop_table_def` / `drop_table_entry`: tablas de drop con pesos y cantidades.
-  - `Loot`: ruleta ponderada y generación de botín; `drop_logs` para auditoría.
+- **Mercado (Auction House)**
+  - Listados con `item_id`, cantidad, `price_per_unit`, moneda (oro), impuesto configurable y expiración.
+  - Acciones: **listar**, **comprar**, **cancelar**, con registros en `market_logs`.
+  - UI en `/market` para crear anuncios, ver los tuyos y comprar listados activos.
+  - CLI `Marketcli::cleanup` para expirar anuncios automáticamente.
+- **Trade directo (doble confirmación)**
+  - Ofertas entre reinos: oro + items, con estados `pending|accepted|declined|canceled|expired`.
+  - UI en `/trade` para bandeja de entrada/salida y acciones.
+- **Anti-abuso**
+  - Config `application/config/market.php`: `tax_rate`, `min_price_floor`, límites diarios de listar/comprar, vida del anuncio.
+  - Lógica de límites diarios por reino vía `market_logs` (sell/buy).
+  - Registro de eventos en `market_logs` para auditoría.
 
 ## Migraciones
-- **010_heroes_progression**: crea `talent_def`, `hero_progress`, `hero_talents`, `item_set_def`, `drop_table_*`, `drop_logs` y amplía `item_def`.
+- **011_market_trade**: `market_listings`, `trade_offers`, `market_logs`.
 
 ## Rutas
-- `/heroes` (panel de progreso) y `/heroes/allocate` (asignación de talentos).
+- Mercado: `/market`, `/market/list`, `/market/buy/{id}`, `/market/cancel/{id}`.
+- Trade: `/trade`, `/trade/offer`, `/trade/accept/{id}`, `/trade/decline/{id}`, `/trade/cancel/{id}`.
 
 ## Notas
-- Integra los **bonos agregados** de `TalentTree` en producción/combate según convenga (p. ej. en `Turn` o motores específicos).
-- Define talentos y sets en `talent_def`/`item_set_def` (vía admin/import S7) para habilitar sinergias.
+- La **transferencia real** de oro/items está marcada como TODO y debe integrarse con inventarios/carteras.
+- Integra un **cron** para `marketcli/cleanup` (p. ej. cada hora).

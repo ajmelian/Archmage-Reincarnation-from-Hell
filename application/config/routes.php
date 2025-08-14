@@ -17,3 +17,13 @@ $route['battle/json/(:num)'] = 'battle/json/$1';
 
 $route['heroes'] = 'heroes/index';
 $route['heroes/allocate'] = 'heroes/allocate';
+
+$route['market'] = 'market/index';
+$route['market/list'] = 'market/list_item';
+$route['market/buy/(:num)'] = 'market/buy/$1';
+$route['market/cancel/(:num)'] = 'market/cancel/$1';
+$route['trade'] = 'trade/index';
+$route['trade/offer'] = 'trade/offer';
+$route['trade/accept/(:num)'] = 'trade/accept/$1';
+$route['trade/decline/(:num)'] = 'trade/decline/$1';
+$route['trade/cancel/(:num)'] = 'trade/cancel/$1';
