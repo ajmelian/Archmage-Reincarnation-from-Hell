@@ -162,3 +162,9 @@ $route['mod/flag/(:num)'] = 'mod/flag/$1';
 $route['mod/resolve/(:num)'] = 'mod/resolve/$1';
 $route['mod/sanction'] = 'mod/sanction';
 $route['api/v1/report'] = 'api/v1/report';
+
+$route['twofa'] = 'twofa/index';
+$route['twofa/enable'] = 'twofa/enable';
+$route['twofa/verify_setup'] = 'twofa/verify_setup';
+$route['twofa/disable'] = 'twofa/disable';
+$route['twofa/login_step'] = 'twofa/login_step';

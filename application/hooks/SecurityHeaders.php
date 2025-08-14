@@ -1,16 +1,25 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class SecurityHeaders {
+    public function __construct() {
+        $this->CI =& get_instance();
+        $this->CI->load->config('security');
+    }
     public function apply() {
-        $CI =& get_instance();
-        $CI->load->config('security');
-        $h = $CI->config->item('security_ext')['headers'] ?? [];
+        $cfg = $this->CI->config->item('security_headers') ?? [];
+        if (!$cfg) return;
+        // CSP
+        if (!headers_sent() && !empty($cfg['csp'])) header("Content-Security-Policy: ".$cfg['csp']);
+        // HSTS solo si HTTPS
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' && !headers_sent()) {
+            $s = (int)($cfg['hsts_seconds'] ?? 0);
+            if ($s>0) header("Strict-Transport-Security: max-age={$s}; includeSubDomains; preload");
+        }
         if (!headers_sent()) {
-            if (!empty($h['hsts'])) header('Strict-Transport-Security: '.$h['hsts']);
-            if (!empty($h['csp'])) header('Content-Security-Policy: '.$h['csp']);
-            if (!empty($h['frame_options'])) header('X-Frame-Options: '.$h['frame_options']);
-            if (!empty($h['x_content_type'])) header('X-Content-Type-Options: '.$h['x_content_type']);
-            if (!empty($h['referrer'])) header('Referrer-Policy: '.$h['referrer']);
+            if (!empty($cfg['x_frame_options'])) header("X-Frame-Options: ".$cfg['x_frame_options']);
+            if (!empty($cfg['x_content_type_options'])) header("X-Content-Type-Options: ".$cfg['x_content_type_options']);
+            if (!empty($cfg['referrer_policy'])) header("Referrer-Policy: ".$cfg['referrer_policy']);
+            if (!empty($cfg['permissions_policy'])) header("Permissions-Policy: ".$cfg['permissions_policy']);
         }
     }
 }
