@@ -101,3 +101,6 @@ $route['api/v1/arena/history'] = 'api/v1/arena_history';
 $route['api/v1/arena/queue'] = 'api/v1/arena_queue';
 $route['api/v1/arena/cancel'] = 'api/v1/arena_cancel';
 $route['api/v1/battle/simulate'] = 'api/v1/battle_simulate';
+
+$route['metrics'] = 'metrics/index';
+$route['ops/metrics'] = 'ops/metrics';

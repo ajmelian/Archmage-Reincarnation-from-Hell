@@ -8,7 +8,7 @@ class MY_ApiController extends CI_Controller {
         parent::__construct();
         $this->load->database();
         $this->load->config('api');
-        $this->load->library(['ApiAuth']);
+        $this->load->library(['ApiAuth','Observability']);
         // CORS
         $cors = $this->config->item('api')['cors'] ?? [];
         if (!empty($cors['enabled'])) {
@@ -17,6 +17,10 @@ class MY_ApiController extends CI_Controller {
             header('Access-Control-Allow-Methods: '.$cors['allow_methods']);
         }
         if ($this->input->method(TRUE)==='OPTIONS') { exit; }
+
+        $this->obsName = 'http_api_request';
+        $this->obsLabels = ['endpoint'=>$this->uri->uri_string()];
+        $this->observability->beginRequest($this->obsName, $this->obsLabels);
 
         // Auth (except for auth/token and docs)
         $path = $this->uri->uri_string();
@@ -44,7 +48,8 @@ class MY_ApiController extends CI_Controller {
         $this->db->set('count','count+1',FALSE)->set('updated_at',$now)->where($key)->update('rate_counters');
     }
 
-    protected function json($data, int $status=200) {
+    protected function json($1) {
+        $this->observability->endRequest($status);
         $this->output->set_status_header($status)->set_content_type('application/json')->set_output(json_encode($data));
         exit;
     }

@@ -5,6 +5,7 @@ class ArenaService {
         $this->CI =& get_instance();
         $this->CI->load->database();
         $this->CI->load->config('arena');
+        $this->CI->load->library('Observability');
         $this->CI->load->library(['Engine','Wallet','TalentTree']);
     }
 
@@ -86,6 +87,7 @@ class ArenaService {
         return $n;
     }
 
+    $this->CI->observability->inc('arena.queue_pulled');
     private function createAndResolveMatch(int $seasonId, array $a, array $b): int {
         $this->CI->db->insert('arena_matches',[
             'season_id'=>$seasonId,'realm_a'=>$a['realm_id'],'realm_b'=>$b['realm_id'],
