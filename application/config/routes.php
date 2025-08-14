@@ -53,3 +53,7 @@ $route['buildings/demolish'] = 'buildings/demolish';
 $route['research'] = 'research/index';
 $route['research/queue'] = 'research/queue';
 $route['research/cancel/(:num)'] = 'research/cancel/$1';
+
+$route['arena'] = 'arena/index';
+$route['arena/queue'] = 'arena/queue';
+$route['arena/cancel'] = 'arena/cancel';

@@ -1,22 +1,19 @@
-# v1.8.0 — Talentos & Sets en runtime + Golden Tests
+# v1.9.0 — Arena PvP (matchmaking + ladder ELO) — sin torneos ni mapa
 
 ## Añadido
-- **Compilación de bonos por reino** (`compiled_bonuses`) en 2 scopes: **economy** y **combat**.
-- **Stacking & caps** configurables (`application/config/talents.php`):
-  - Pila por clave (`add`, `mult`, `max`) y **límites duros** (+% y planos).
-- **Equipamiento** básico (`equipment`) para activar **bonos de set** de `item_set_def`.
-- **TalentTree** actualizado:
-  - `heroTalents`, `aggregateBonuses`, `equipmentBonuses` y `compileRealm()` con persistencia.
-  - `getCompiled(realm, scope)` para consulta rápida.
-- **TickRunner** usa los bonos **compilados** de economía al producir recursos.
-- **Engine (combate)** aplica bonos de combate (mult de ataque/defensa y planos por unidad).
-- **Golden Tests (CLI)** `Goldencli::run`:
-  - Economía: verifica producción con talentos de oro (+10% y +20%).
-  - Combate: verificación determinista de puntajes con mismos bonos.
+- **Temporadas de Arena** (`arena_seasons`) activas con rango de fechas.
+- **Ratings por temporada** (`arena_ratings`) con ELO y W/L/D.
+- **Cola de emparejamiento** (`arena_queue`) con rango de búsqueda expandible.
+- **Partidas** (`arena_matches`) resueltas automáticamente al emparejar, usando `Engine::duel()` y bonos compilados.
+- **Servicio** `ArenaService`:
+  - `enqueue/dequeue`, `matchmake()` (busca rival por ELO, crea y resuelve match), `leaderboard()`, `history()`.
+  - Recompensa opcional al ganador (oro/maná) configurable.
+- **UI** `/arena`: rating propio, **historial**, **clasificación** top.
+- **CLI** `Arenacli::matchmake [loops] [sleep]` para procesar la cola.
 
-## Migraciones
-- **017_runtime_bonuses**: `compiled_bonuses`, `equipment`.
+## Configuración
+- `application/config/arena.php`: `k_factor`, `search_delta`, `search_expand_sec`, `expand_step`, `reward`.
 
 ## Notas
-- Determinista y **sin IA**. Ajusta `caps`/`stacking` según tu diseño exacto.
-- Si ya tienes tus propias fórmulas de economía/combate, solo usa `TalentTree::getCompiled()` para obtener modificadores y aplícalos en tus cálculos.
+- Sin **torneos** ni **mapa/exploración/raids** (excluidos por decisión).
+- Determinista y data-driven; si no existe `armies`/`unit_def`, se usa un stub basado en edificios para el combate.

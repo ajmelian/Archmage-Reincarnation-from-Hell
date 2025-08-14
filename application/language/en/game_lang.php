@@ -11,3 +11,5 @@ $lang['inventory_wallet']='Inventory & Wallet';
 $lang['buildings']='Buildings';
 
 $lang['research']='Research';
+
+$lang['arena']='Arena';
