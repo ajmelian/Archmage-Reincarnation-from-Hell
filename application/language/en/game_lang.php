@@ -2,3 +2,6 @@
 $lang['admin_import'] = 'Importer (Admin)';
 
 $lang['heroes_progression']='Heroes · Progression';
+
+$lang['alliances']='Alliances';
+$lang['diplomacy']='Diplomacy';

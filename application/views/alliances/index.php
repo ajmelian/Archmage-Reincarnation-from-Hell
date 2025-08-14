@@ -1,35 +1,45 @@
 <!doctype html><html><head>
-<meta charset="utf-8"><title>Alliances</title>
+<meta charset="utf-8"><title>Alianzas</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head><body class="p-3">
-<h1 class="h4">Alliances</h1>
-<h2 class="h6">Your memberships</h2>
-<ul class="list-group mb-3">
-  <?php foreach ($memberships as $m): ?>
-  <li class="list-group-item d-flex justify-content-between">
-    <span>[<?php echo html_escape($m['tag']); ?>] <?php echo html_escape($m['name']); ?> — <?php echo html_escape($m['role']); ?></span>
-    <a class="btn btn-sm btn-outline-danger" href="<?php echo site_url('alliances/leave/'.$m['alliance_id']); ?>">Leave</a>
-  </li>
-  <?php endforeach; if (!$memberships): ?><li class="list-group-item text-muted">None</li><?php endif; ?>
-</ul>
+<h1 class="h4">Alianzas</h1>
 
-<h2 class="h6">Create alliance</h2>
-<form method="post" action="<?php echo site_url('alliances/create'); ?>">
-  <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" value="<?php echo $this->security->get_csrf_hash(); ?>">
-  <div class="row g-2">
-    <div class="col"><input class="form-control form-control-sm" name="name" placeholder="Name" required></div>
-    <div class="col"><input class="form-control form-control-sm" name="tag" placeholder="TAG" maxlength="10" required></div>
-    <div class="col-auto"><button class="btn btn-primary btn-sm">Create</button></div>
+<?php if ($this->session->flashdata('msg')): ?>
+<div class="alert alert-success"><?php echo html_escape($this->session->flashdata('msg')); ?></div>
+<?php endif; ?>
+<?php if ($this->session->flashdata('err')): ?>
+<div class="alert alert-danger"><?php echo html_escape($this->session->flashdata('err')); ?></div>
+<?php endif; ?>
+
+<div class="mb-3">
+  <?php if ($realm && !$myAllianceId): ?>
+    <a class="btn btn-primary btn-sm" href="<?php echo site_url('alliances/create'); ?>">Crear alianza</a>
+  <?php elseif (!$realm): ?>
+    <span class="text-muted">Crea un reino para gestionar alianzas.</span>
+  <?php endif; ?>
+</div>
+
+<div class="card"><div class="card-body">
+  <div class="table-responsive" style="max-height:420px;overflow:auto">
+    <table class="table table-sm table-striped align-middle">
+      <thead><tr><th>#</th><th>Tag</th><th>Nombre</th><th>Miembros</th><th>Creada</th><th></th></tr></thead>
+      <tbody>
+      <?php foreach ($alliances as $a): 
+        $m = $this->db->where('alliance_id', $a['id'])->count_all_results('alliance_members'); ?>
+        <tr>
+          <td><?php echo (int)$a['id']; ?></td>
+          <td><span class="badge text-bg-dark"><?php echo html_escape($a['tag']); ?></span></td>
+          <td><?php echo html_escape($a['name']); ?></td>
+          <td><?php echo (int)$m; ?></td>
+          <td><?php echo date('Y-m-d', $a['created_at']); ?></td>
+          <td><a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('alliances/view/'.$a['id']); ?>">Ver</a></td>
+        </tr>
+      <?php endforeach; if (!$alliances): ?>
+        <tr><td colspan="6" class="text-muted">No hay alianzas.</td></tr>
+      <?php endif; ?>
+      </tbody>
+    </table>
   </div>
-</form>
+</div></div>
 
-<h2 class="h6 mt-4">Recent alliances</h2>
-<ul class="list-group">
-  <?php foreach ($alliances as $a): ?>
-  <li class="list-group-item d-flex justify-content-between">
-    <span>[<?php echo html_escape($a['tag']); ?>] <?php echo html_escape($a['name']); ?></span>
-    <a class="btn btn-sm btn-outline-primary" href="<?php echo site_url('alliances/join/'.$a['id']); ?>">Join</a>
-  </li>
-  <?php endforeach; if (!$alliances): ?><li class="list-group-item text-muted">None</li><?php endif; ?>
-</ul>
 </body></html>
