@@ -43,3 +43,21 @@ $config['game']['battle_phase'] = [
     // Si un stack tiene ataques híbridos, prioriza golpear unidades NO voladoras con melee
     'hybrid_prefers_ground' => true,
 ];
+
+
+$config['game']['battle_modes'] = [
+    'regular' => ['turn_cost'=>2, 'mana_cost'=>0, 'loot_rate'=>0.15, 'land_percent'=>0.02],
+    'siege'   => ['turn_cost'=>3, 'mana_cost'=>25, 'loot_rate'=>0.10, 'land_percent'=>0.03],
+    'pillage' => ['turn_cost'=>1, 'mana_cost'=>0, 'loot_rate'=>0.25, 'land_percent'=>0.00],
+];
+
+$config['game']['loot'] = [
+    'base_gold_per_np' => 1.0, // oro por NP perdido del defensor antes de multiplicadores
+    'min_loot' => 0,
+    'max_loot' => 1000000,
+];
+
+$config['game']['war'] = [
+    'points_per_np' => 1,   // puntos de guerra por NP neto (def_loss - att_loss) a favor del ganador
+    'points_per_land' => 10,
+];

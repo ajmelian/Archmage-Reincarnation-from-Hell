@@ -51,3 +51,26 @@ curl -X POST http://localhost/index.php/battle/prebattle -d '{...json...}'
 - El motor considera `unit_resists` por **tipo de ataque efectivo** (melee/ranged/flying). Híbridos priorizan melee contra objetivos en tierra y usan ranged si solo quedan voladores.
 - La relación daño→NP es 1:1 como aproximación. Puedes ajustar una conversión distinta si tu economía lo requiere.
 - Determinista y sin IA.
+
+
+# v1.29.0 — Batallas & Guerras (unificado)
+
+## Añadido
+- **Migración 036**:
+  - `battles`: registro completo del combate (seed, tipo, NP antes, pérdidas, loot, tierras, alianza A/B, reporte JSON).
+  - `wars` y `war_battles`: declaración de guerras, puntuación y vínculo de batallas.
+- **Config** `game.php`:
+  - `battle_modes`: costes y parámetros por tipo (`regular|siege|pillage`), `loot` y `war` (puntuación por NP y tierras).
+- **Librerías**:
+  - `LootService`: calcula y aplica oro/tierras según pérdidas NP, tipo y **lootModifier** (botín=0 en counters >2×).
+  - `WarService`: declara guerras, detecta guerra activa y suma **puntos** tras cada batalla, con `scoreboard()`.
+  - `BattleService`: orquesta **prebattle → pairing → damage → apply/log → loot → wars** y persiste en `battles`.
+- **Controladores**:
+  - `Battle`: `POST /battle/start`, `POST /battle/finalize`, `GET /battle/report/{id}`.
+  - `War`: `POST /war/declare`, `GET /war/scoreboard/{warId}`.
+
+## Notas
+- El cálculo de victoria por defecto es **más daño infligido**; puedes sustituirlo por tu criterio oficial.
+- `LootService` aplica oro/tierras **solo si** existen columnas `gold`/`land` en `realms`. Si no, deja el valor reflejado en `battles.loot_*` y `land_taken`.
+- Integrado con **Counters** y **Damage Protection** (S37/S37b), **Pre-battle resistencias** (S38) y **Unit resists/híbridos** (S39).
+- Determinista y sin IA.

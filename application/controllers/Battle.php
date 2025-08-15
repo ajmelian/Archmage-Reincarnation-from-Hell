@@ -58,3 +58,27 @@ class Battle extends MY_Controller {
         $result['loot_modifier'] = $lootMod;
         $this->output->set_content_type('application/json')->set_output(json_encode($result));
     }
+
+
+    public function start() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $type = (string)($this->input->post('type', TRUE) ?: 'regular');
+        $attId = (int)$this->input->post('attacker_realm_id', TRUE);
+        $defId = (int)$this->input->post('defender_realm_id', TRUE);
+        $isCounter = (bool)$this->input->post('is_counter', TRUE);
+        $id = $this->battleservice->start($attId, $defId, $type, null, $isCounter);
+        $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>true,'battle_id'=>$id]));
+    }
+
+    public function finalize() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $payload = json_decode($this->input->raw_input_stream, true) ?: [];
+        $res = $this->battleservice->finalize($payload);
+        $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>true,'result'=>$res]));
+    }
+
+    public function report($id) {
+        $row = $this->db->get_where('battles',['id'=>(int)$id])->row_array();
+        if (!$row) show_404();
+        $this->output->set_content_type('application/json')->set_output($row['report'] ?: '{}');
+    }
