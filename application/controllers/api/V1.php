@@ -107,9 +107,6 @@ class V1 extends MY_ApiController {
         $res = $this->engine->duel($rid, $rid, $a, $b);
         $this->json(['ok'=>true,'result'=>$res]);
     }
-}
-
-
 
     // GET /api/v1/economy/preview
     public function economy_preview() {
@@ -333,3 +330,4 @@ class V1 extends MY_ApiController {
             $this->output->set_output($csv);
         }
     }
+}

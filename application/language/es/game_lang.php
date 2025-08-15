@@ -20,7 +20,6 @@ $lang['messages']='Mensajes';
 $lang['moderation']='Moderación';
 
 $lang['admin']='Administración';
-<?php
 $lang['game.chat.title'] = 'Chat';
 $lang['game.chat.global'] = 'Global';
 $lang['game.chat.alliance'] = 'Alianza';

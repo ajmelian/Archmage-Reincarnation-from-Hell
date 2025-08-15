@@ -50,7 +50,7 @@ class MY_ApiController extends CI_Controller {
         $this->db->set('count','count+1',FALSE)->set('updated_at',$now)->where($key)->update('rate_counters');
     }
 
-    protected function json($1) {
+    protected function json($data, $status = 200) {
         $this->observability->endRequest($status);
         $this->output->set_status_header($status)->set_content_type('application/json')->set_output(json_encode($data));
         exit;

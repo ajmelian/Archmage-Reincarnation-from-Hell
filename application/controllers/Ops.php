@@ -17,8 +17,6 @@ class Ops extends MY_Controller {
             ->group_by('labels')->order_by('c','DESC')->limit(10)->get()->result_array();
         $this->load->view('ops/metrics', ['topReq'=>$topReq,'topHtml'=>$topHtml]);
     }
-}
-
 
     public function cache() {
         $this->load->config('cache_ext');
@@ -41,3 +39,4 @@ class Ops extends MY_Controller {
         $jobs = $this->db->order_by('created_at','DESC')->limit(50)->get('backup_jobs')->result_array();
         $this->load->view('ops/backups', ['files'=>$list,'jobs'=>$jobs,'dir'=>$dir]);
     }
+}

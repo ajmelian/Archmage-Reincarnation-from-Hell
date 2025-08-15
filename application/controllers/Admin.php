@@ -78,8 +78,6 @@ class Admin extends CI_Controller {
         $this->adminservice->setAdmin((int)$this->admin['id'], (int)$userId, $op==='grant');
         redirect('admin/users');
     }
-}
-
 
     public function economy_balance() {
         $this->load->library('EconomyService');
@@ -93,3 +91,4 @@ class Admin extends CI_Controller {
         $mods = $this->db->order_by('created_at','DESC')->limit(100)->get('econ_modifiers')->result_array();
         $this->load->view('admin/economy_balance', ['params'=>$rows,'mods'=>$mods,'admin'=>$this->admin]);
     }
+}
