@@ -66,8 +66,9 @@ class Battle extends MY_Controller {
         $attId = (int)$this->input->post('attacker_realm_id', TRUE);
         $defId = (int)$this->input->post('defender_realm_id', TRUE);
         $isCounter = (bool)$this->input->post('is_counter', TRUE);
-        $id = $this->battleservice->start($attId, $defId, $type, null, $isCounter);
-        $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>true,'battle_id'=>$id]));
+        $res = $this->battleservice->start($attId, $defId, $type, null, $isCounter);
+        if (!is_array($res) || empty($res['ok'])) { $this->output->set_status_header(409)->set_output(json_encode(['ok'=>false,'error'=>$res['error'] ?? 'failed'])); return; }
+        $this->output->set_content_type('application/json')->set_output(json_encode(['ok'=>true,'battle_id'=>$res['battle_id']]));
     }
 
     public function finalize() {

@@ -1,5 +1,3 @@
-
-
 # v1.26.1 — Conexión de pérdidas NP con Counters y Damage Protection
 
 ## Añadido
@@ -74,3 +72,16 @@ curl -X POST http://localhost/index.php/battle/prebattle -d '{...json...}'
 - `LootService` aplica oro/tierras **solo si** existen columnas `gold`/`land` en `realms`. Si no, deja el valor reflejado en `battles.loot_*` y `land_taken`.
 - Integrado con **Counters** y **Damage Protection** (S37/S37b), **Pre-battle resistencias** (S38) y **Unit resists/híbridos** (S39).
 - Determinista y sin IA.
+
+
+# v1.29.1 — Costes de batalla (turnos/maná) contra inventario del reino
+
+## Añadido
+- **BattleService**: control de **costes** por `battle_modes` (turnos/maná) contra columnas `realms.turns` y `realms.mana` si existen.
+  - `canConsumeCosts()` y `consumeCosts()` con transacción y comprobación atómica `WHERE turns >= cost`/`WHERE mana >= cost`.
+  - `start()` devuelve `{ok:false,error}` si no hay recursos; si inicia con auto-`start` desde `finalize()`, también valida/consume.
+- **Battle controller**: `POST /battle/start` devuelve **409** si faltan turnos/maná.
+
+## Notas
+- Si tu base no tiene `turns`/`mana`, el consumo es **no-op** (modo compatibilidad).
+- Los costes por modo se configuran en `application/config/game.php` → `battle_modes`.

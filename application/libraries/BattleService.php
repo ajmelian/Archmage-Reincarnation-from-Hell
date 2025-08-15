@@ -1,6 +1,50 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class BattleService {
+    private function hasColumn($table, $column): bool {
+        $q = $this->CI->db->query('SHOW COLUMNS FROM `'.$table.'` LIKE '.$this->CI->db->escape($column));
+        return $q->row_array() ? true : false;
+    }
+    private function modeCfg($type) {
+        $modes = $this->CI->config->item('game')['battle_modes'] ?? [];
+        return $modes[$type] ?? ['turn_cost'=>0,'mana_cost'=>0];
+    }
+    private function canConsumeCosts($attRealmId, $type): array {
+        $mode = $this->modeCfg($type);
+        $needTurns = (int)($mode['turn_cost'] ?? 0);
+        $needMana  = (int)($mode['mana_cost'] ?? 0);
+        $hasTurns = $this->hasColumn('realms','turns');
+        $hasMana  = $this->hasColumn('realms','mana');
+        if (!$hasTurns && !$hasMana) return [true, null]; // no control si no hay columnas
+        $row = $this->CI->db->select(($hasTurns?'turns':'0').' as turns, '.($hasMana?'mana':'0').' as mana')->get_where('realms',['id'=>(int)$attRealmId])->row_array();
+        $haveT = (int)($row['turns'] ?? 0);
+        $haveM = (int)($row['mana'] ?? 0);
+        if ($hasTurns && $haveT < $needTurns) return [false, 'not_enough_turns'];
+        if ($hasMana  && $haveM < $needMana)  return [false, 'not_enough_mana'];
+        return [true, null];
+    }
+    private function consumeCosts($attRealmId, $type): bool {
+        $mode = $this->modeCfg($type);
+        $needTurns = (int)($mode['turn_cost'] ?? 0);
+        $needMana  = (int)($mode['mana_cost'] ?? 0);
+        $hasTurns = $this->hasColumn('realms','turns');
+        $hasMana  = $this->hasColumn('realms','mana');
+        if (!$hasTurns && !$hasMana) return True; // no-op
+        $this->CI->db->trans_start();
+        $ok = true;
+        if ($hasTurns && $needTurns > 0) {
+            $this->CI->db->set('turns', 'turns - '.(int)$needTurns, false)->where('id',(int)$attRealmId)->where('turns >=', (int)$needTurns)->update('realms');
+            if ($this->CI->db->affected_rows() <= 0) $ok = false;
+        }
+        if ($ok && $hasMana && $needMana > 0) {
+            $this->CI->db->set('mana', 'mana - '.(int)$needMana, false)->where('id',(int)$attRealmId)->where('mana >=', (int)$needMana)->update('realms');
+            if ($this->CI->db->affected_rows() <= 0) $ok = false;
+        }
+        if ($ok) { $this->CI->db->trans_complete(); return $this->CI->db->trans_status(); }
+        $this->CI->db->trans_complete();
+        return false;
+    }
+
     public function __construct() {
         $this->CI =& get_instance();
         $this->CI->load->database();
@@ -33,7 +77,9 @@ class BattleService {
 
         if (!empty($payload['battle_id'])) $battleId = (int)$payload['battle_id'];
         if (!$battleId && !empty($att['realm_id']) && !empty($def['realm_id'])) {
-            $battleId = $this->start((int)$att['realm_id'], (int)$def['realm_id'], $type, null, $isCounter);
+            $__start = $this->start((int)$att['realm_id'], (int)$def['realm_id'], $type, null, $isCounter);
+            if (!is_array($__start) || empty($__start['ok'])) { return ['error'=>'start_failed','reason'=>$__start['error'] ?? 'unknown']; }
+            $battleId = (int)$__start['battle_id'];
         }
 
         // Pre-battle (opcional si llega contexto de resistencias)
