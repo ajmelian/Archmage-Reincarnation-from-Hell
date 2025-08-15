@@ -33,3 +33,13 @@ $config['game']['prebattle'] = [
     // Probabilidad base si no se define en el hechizo/ítem
     'default_spell_base_success' => 1.0,
 ];
+
+
+$config['game']['battle_phase'] = [
+    // Eficiencia base de daño por tipo de ataque (ajustable a datos reales)
+    'attack_efficiency' => ['melee'=>1.0, 'ranged'=>1.0, 'flying'=>1.0],
+    // Tope de daño que puede infligirse a un stack en un solo asalto (proporción de su poder)
+    'damage_cap_vs_stack' => 1.0, // 100% del 'power' del stack como máximo en la fase
+    // Si un stack tiene ataques híbridos, prioriza golpear unidades NO voladoras con melee
+    'hybrid_prefers_ground' => true,
+];

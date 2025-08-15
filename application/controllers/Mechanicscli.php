@@ -14,6 +14,54 @@ class Mechanicscli extends CI_Controller { public function __construct(){ parent
         $this->load->library('BattlePolicy');
         $res['loot_modifier'] = $this->battlepolicy->lootModifier($payload['attacker']['np'],$payload['defender']['np'],true);
         echo json_encode($res, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
+    
+    public function resolve_demo() {
+        $this->load->library(['Engine','BattlePolicy','BattleResults']);
+        $att = [
+            'realm_id'=>1,'np'=>20000,
+            'stacks'=>[
+                ['id'=>1,'type'=>'flying','attack_types'=>['ranged'],'power'=>120,'unit_resists'=>['ranged'=>0.1]],
+                ['id'=>2,'type'=>'melee','attack_types'=>['melee'],'power'=>80,'unit_resists'=>[]],
+            ]
+        ];
+        $def = [
+            'realm_id'=>2,'np'=>15000,
+            'stacks'=>[
+                ['id'=>10,'type'=>'melee','attack_types'=>['melee'],'power'=>90,'unit_resists'=>['melee'=>0.25]],
+                ['id'=>11,'type'=>'flying','attack_types'=>['ranged'],'power'=>110,'unit_resists'=>['ranged'=>0.2]],
+            ]
+        ];
+        $ao = $this->engine->stack_order($att['stacks']);
+        $do = $this->engine->stack_order($def['stacks']);
+        $pairs = $this->engine->pairing($ao,$do);
+        $phase = $this->engine->damage_phase($ao,$do,$pairs);
+        $out = ['pairs'=>$pairs,'phase'=>$phase];
+        echo json_encode($out, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
+    }
+}
+
+    public function resolve_demo() {
+        $this->load->library(['Engine','BattlePolicy','BattleResults']);
+        $att = [
+            'realm_id'=>1,'np'=>20000,
+            'stacks'=>[
+                ['id'=>1,'type'=>'flying','attack_types'=>['ranged'],'power'=>120,'unit_resists'=>['ranged'=>0.1]],
+                ['id'=>2,'type'=>'melee','attack_types'=>['melee'],'power'=>80,'unit_resists'=>[]],
+            ]
+        ];
+        $def = [
+            'realm_id'=>2,'np'=>15000,
+            'stacks'=>[
+                ['id'=>10,'type'=>'melee','attack_types'=>['melee'],'power'=>90,'unit_resists'=>['melee'=>0.25]],
+                ['id'=>11,'type'=>'flying','attack_types'=>['ranged'],'power'=>110,'unit_resists'=>['ranged'=>0.2]],
+            ]
+        ];
+        $ao = $this->engine->stack_order($att['stacks']);
+        $do = $this->engine->stack_order($def['stacks']);
+        $pairs = $this->engine->pairing($ao,$do);
+        $phase = $this->engine->damage_phase($ao,$do,$pairs);
+        $out = ['pairs'=>$pairs,'phase'=>$phase];
+        echo json_encode($out, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
     }
 }
     public function prebattle_demo() {
@@ -30,5 +78,53 @@ class Mechanicscli extends CI_Controller { public function __construct(){ parent
         $this->load->library('BattlePolicy');
         $res['loot_modifier'] = $this->battlepolicy->lootModifier($payload['attacker']['np'],$payload['defender']['np'],true);
         echo json_encode($res, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
+    
+    public function resolve_demo() {
+        $this->load->library(['Engine','BattlePolicy','BattleResults']);
+        $att = [
+            'realm_id'=>1,'np'=>20000,
+            'stacks'=>[
+                ['id'=>1,'type'=>'flying','attack_types'=>['ranged'],'power'=>120,'unit_resists'=>['ranged'=>0.1]],
+                ['id'=>2,'type'=>'melee','attack_types'=>['melee'],'power'=>80,'unit_resists'=>[]],
+            ]
+        ];
+        $def = [
+            'realm_id'=>2,'np'=>15000,
+            'stacks'=>[
+                ['id'=>10,'type'=>'melee','attack_types'=>['melee'],'power'=>90,'unit_resists'=>['melee'=>0.25]],
+                ['id'=>11,'type'=>'flying','attack_types'=>['ranged'],'power'=>110,'unit_resists'=>['ranged'=>0.2]],
+            ]
+        ];
+        $ao = $this->engine->stack_order($att['stacks']);
+        $do = $this->engine->stack_order($def['stacks']);
+        $pairs = $this->engine->pairing($ao,$do);
+        $phase = $this->engine->damage_phase($ao,$do,$pairs);
+        $out = ['pairs'=>$pairs,'phase'=>$phase];
+        echo json_encode($out, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
+    }
+}
+
+    public function resolve_demo() {
+        $this->load->library(['Engine','BattlePolicy','BattleResults']);
+        $att = [
+            'realm_id'=>1,'np'=>20000,
+            'stacks'=>[
+                ['id'=>1,'type'=>'flying','attack_types'=>['ranged'],'power'=>120,'unit_resists'=>['ranged'=>0.1]],
+                ['id'=>2,'type'=>'melee','attack_types'=>['melee'],'power'=>80,'unit_resists'=>[]],
+            ]
+        ];
+        $def = [
+            'realm_id'=>2,'np'=>15000,
+            'stacks'=>[
+                ['id'=>10,'type'=>'melee','attack_types'=>['melee'],'power'=>90,'unit_resists'=>['melee'=>0.25]],
+                ['id'=>11,'type'=>'flying','attack_types'=>['ranged'],'power'=>110,'unit_resists'=>['ranged'=>0.2]],
+            ]
+        ];
+        $ao = $this->engine->stack_order($att['stacks']);
+        $do = $this->engine->stack_order($def['stacks']);
+        $pairs = $this->engine->pairing($ao,$do);
+        $phase = $this->engine->damage_phase($ao,$do,$pairs);
+        $out = ['pairs'=>$pairs,'phase'=>$phase];
+        echo json_encode($out, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).\"\\n\";
     }
 }

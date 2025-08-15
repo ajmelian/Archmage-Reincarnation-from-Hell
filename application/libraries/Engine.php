@@ -86,3 +86,110 @@ class Engine {
         return true;
     }
 }
+
+
+
+    private function battle_cfg() { return $this->CI->config->item('game')['battle_phase'] ?? []; }
+
+    /**
+     * Decide el tipo de ataque efectivo de un stack (para híbridos).
+     * $stack: ['type'=>'melee|ranged|flying', 'attack_types'=>['melee','ranged']]
+     * $defAvailTypes: lista de tipos defensores aún presentes ['melee','ranged','flying']
+     */
+    private function choose_attack_type($stack, $defAvailTypes) {
+        $cfg = $this->battle_cfg();
+        $ats = isset($stack['attack_types']) && is_array($stack['attack_types']) ? $stack['attack_types'] : [$stack['type']];
+        $ats = array_values(array_unique($ats));
+        if (count($ats) === 1) return $ats[0];
+        // híbrido: preferencia por melee si hay objetivos no voladores
+        if (!empty($cfg['hybrid_prefers_ground'])) {
+            if (in_array('melee', $ats, true) && (in_array('melee', $defAvailTypes, true) || in_array('ranged', $defAvailTypes, true))) {
+                return 'melee';
+            }
+        }
+        // si hay voladores y el stack puede atacar 'ranged', usar ranged
+        if (in_array('ranged', $ats, true) && in_array('flying', $defAvailTypes, true)) return 'ranged';
+        // fallback: primer tipo
+        return $ats[0];
+    }
+
+    /**
+     * Determina si un stack con attack_type puede golpear a un tipo de objetivo
+     */
+    private function can_hit_attack_type($attackType, $defType): bool {
+        if ($attackType === 'ranged') return true;
+        if ($attackType === 'flying') return true;
+        if ($attackType === 'melee' && $defType === 'flying') return false;
+        return true;
+    }
+
+    /**
+     * Fase de daño: aplica daño de A→D basado en los emparejamientos generados por pairing().
+     * Cada par tiene 'share' de la potencia del stack atacante destinado a un stack defensor.
+     * Se aplican resistencias de unidad del defensor por 'attack_type' y una eficiencia base.
+     *
+     * $atkStacks/$defStacks: arrays alineados con pairing indices
+     *   Stack debe traer:
+     *     - 'power': int
+     *     - 'type':  'melee|ranged|flying'  (movilidad/defensa)
+     *     - 'attack_types': ['melee'|'ranged'|'flying', ...] (opcional; por defecto [type])
+     *     - 'unit_resists': ['melee'=>0..1,'ranged'=>0..1,'flying'=>0..1] (opcional; por defecto 0)
+     *
+     * @return array ['damage_to_def'=>int, 'damage_to_atk'=>int, 'def_losses'=>[j=>loss], 'atk_losses'=>[i=>loss]]
+     */
+    public function damage_phase(array $atkStacks, array $defStacks, array $pairs): array {
+        $cfg = $this->battle_cfg();
+        $eff = $cfg['attack_efficiency'] ?? ['melee'=>1.0,'ranged'=>1.0,'flying'=>1.0];
+        // Tipos defensores presentes
+        $defTypes = [];
+        foreach ($defStacks as $ds) { $t = $ds['type'] ?? 'melee'; if (!in_array($t, $defTypes, true)) $defTypes[] = $t; }
+
+        $defLoss = array_fill(0, count($defStacks), 0.0);
+        $atkLoss = array_fill(0, count($atkStacks), 0.0);
+
+        // Para cada atacante, elegimos attack_type efectivo
+        $atkAttackType = [];
+        foreach ($atkStacks as $i=>$as) {
+            $atkAttackType[$i] = $this->choose_attack_type($as, $defTypes);
+        }
+
+        // Aplicar daño A->D según pairing
+        foreach ($pairs as $p) {
+            $i = $p['atk_idx']; $j = $p['def_idx']; $share = (float)$p['share'];
+            if (!isset($atkStacks[$i]) || !isset($defStacks[$j])) continue;
+            $a = $atkStacks[$i]; $d = $defStacks[$j];
+
+            $attackType = $atkAttackType[$i];
+            if (!$this->can_hit_attack_type($attackType, $d['type'])) continue;
+
+            $base = max(0.0, (float)$a['power']) * max(0.0, min(1.0, $share));
+            $res = 0.0;
+            if (!empty($d['unit_resists']) && isset($d['unit_resists'][$attackType])) {
+                $res = max(0.0, min(1.0, (float)$d['unit_resists'][$attackType]));
+            }
+            $effi = (float)($eff[$attackType] ?? 1.0);
+            $dmg = $base * $effi * (1.0 - $res);
+            $defLoss[$j] += $dmg;
+        }
+
+        // Cap de daño por stack
+        $capRatio = (float)($cfg['damage_cap_vs_stack'] ?? 1.0);
+        foreach ($defLoss as $j=>$loss) {
+            $cap = $capRatio * max(0.0, (float)($defStacks[$j]['power'] ?? 0.0));
+            if ($loss > $cap) $defLoss[$j] = $cap;
+        }
+
+        // (Opcional) Retaliation simple: proporcional a daño recibido (placeholder: 0.0)
+        // $atkLoss[...] = ...;
+
+        $sumDef = 0.0; foreach ($defLoss as $v) $sumDef += $v;
+        $sumAtk = 0.0; foreach ($atkLoss as $v) $sumAtk += $v;
+
+        return [
+            'damage_to_def' => (int)round($sumDef),
+            'damage_to_atk' => (int)round($sumAtk),
+            'def_losses'    => array_map(function($x){ return (int)round($x); }, $defLoss),
+            'atk_losses'    => array_map(function($x){ return (int)round($x); }, $atkLoss),
+            'attack_types'  => $atkAttackType,
+        ];
+    }

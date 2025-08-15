@@ -34,3 +34,20 @@ curl -X POST http://localhost/index.php/battle/apply_result   -d 'battle_id=123'
 php public/index.php mechanicscli prebattle_demo
 curl -X POST http://localhost/index.php/battle/prebattle -d '{...json...}'
 ```
+
+
+# v1.28.0 — Fase de batalla: resistencias por unidad + targeting híbrido + resolución de daño
+
+## Añadido
+- **Config** `game.php` → `battle_phase`: eficiencias por tipo, cap de daño por stack y preferencia híbrida hacia tierra.
+- **Engine**:
+  - `choose_attack_type()` y `can_hit_attack_type()` para híbridos y validación de objetivo.
+  - `damage_phase()` — calcula daño A→D según `pairing`, aplicando **resistencias por unidad** (`unit_resists`) y eficiencia por tipo. Incluye cap por stack.
+- **Battle**:
+  - `POST /battle/resolve` — recibe `attacker/defender` con `stacks`, ejecuta `pairing + damage_phase`, devuelve pérdidas NP aproximadas y aplica `BattleResults::applyAndLog()` si se proporcionan los realm_id.
+- **CLI**: `mechanicscli resolve_demo`.
+
+## Notas
+- El motor considera `unit_resists` por **tipo de ataque efectivo** (melee/ranged/flying). Híbridos priorizan melee contra objetivos en tierra y usan ranged si solo quedan voladores.
+- La relación daño→NP es 1:1 como aproximación. Puedes ajustar una conversión distinta si tu economía lo requiere.
+- Determinista y sin IA.
