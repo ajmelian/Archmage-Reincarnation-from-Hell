@@ -1,42 +1,24 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Configuración del motor de juego.
- * - Stacking y Caps de bonos
- * - Parámetros de combate y economía
- * Ajusta estos valores para balancear el juego sin tocar la lógica.
- */
+$config['game'] = [];
 
-$config['rng_seed_base'] = 1337;
 
-// Reglas de stacking (cómo se acumulan los bonos del mismo tipo)
-$config['stacking'] = [
-    'attack_bonus'  => 'additive',   // additive | multiplicative
-    'defense_bonus' => 'additive',
-    'gold_bonus'    => 'additive',
-    'mana_bonus'    => 'additive',
-    'research_bonus'=> 'additive',
+$config['game']['combat'] = [
+    // Banda de ataque por Net Power (NP)
+    'attack_band' => ['min'=>0.80, 'max'=>2.00],
+    // Excepción por counter
+    'counters_ignore_band' => true,
+    // Si atacante > 2x NP del defensor en counter -> botín 0
+    'counter_loot_if_ratio_over' => 2.0,
+    // Pairing
+    'pair_min_ratio' => 0.10, // no golpear stacks minúsculos (<10% del atacante)
+    'max_stacks' => 10, // máximo de stacks que entran
+    // Multiplicadores de orden para el "stack power" (solo para ordenar)
+    'stack_order_multipliers' => ['ranged'=>1.0, 'melee'=>1.5, 'flying'=>2.25],
 ];
 
-// Límites máximos (p. ej. 0.75 = +75% máximo)
-$config['caps'] = [
-    'attack_bonus'  => 0.75,
-    'defense_bonus' => 0.75,
-    'gold_bonus'    => 2.00,
-    'mana_bonus'    => 2.00,
-    'research_bonus'=> 2.00,
-];
-
-// Parámetros de combate
-$config['combat'] = [
-    'damage_scale' => 0.15,    // factor sobre (Atk - Def)
-    'min_damage'   => 0,       // suelo tras escalar
-    'spread'       => 2,       // jitter determinista (no usado en esta versión)
-    'targeting'    => 'proportional', // proportional | focus_low_hp | focus_high_hp
-    'hp_per_unit'  => 1        // por defecto si la unidad no define hp
-];
-
-// Economía (placeholder ampliable)
-$config['economy'] = [
-    'land_explore_ratio' => 1.0 // +1 tierra por punto de explorar (simplificado)
+$config['game']['protections'] = [
+    'damage_threshold_percent_24h' => 30,
+    'pillage_max_24h' => 10,
+    'volcano_max_24h' => 10,
 ];
