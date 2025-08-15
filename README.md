@@ -1,7 +1,3 @@
-Aquí tienes un **README.md** completo y práctico para tu repositorio. Está pensado para que cualquiera pueda instalarlo, operarlo y mantenerlo con confianza.
-
----
-
 # Archmage: Reincarnation from Hell
 
 Un mundo roto por antiguas guerras arcanas vuelve a rugir. De los abismos surge una nueva estirpe de magos—**reencarnados desde el mismísimo Infierno**—dispuestos a reclamar reinos, despertar reliquias prohibidas y reescribir las reglas de la magia. **Archmage: Reincarnation from Hell** es un MMORPG estratégico **por turnos** donde cada tick es un latido del mundo: tus conjuros se tejen, tus ejércitos marchan, tus enemigos conspiran.
@@ -350,7 +346,3 @@ Revisa `application/controllers/api/V1.php` para el listado actualizado y scopes
 * **Caché no se purga**: usa Redis para `deleteByPrefix` efectivo; con file-cache depende del TTL.
 * **No puedo crear backup**: verifica permisos en `public/backups` y que la DB sea accesible desde PHP.
 * **CLI no responde**: ejecuta con `php public/index.php <controller> <method>`, estando en el raíz del proyecto.
-
----
-
-¿Quieres que lo guarde como `README.md` dentro del repo o prefieres editar algo antes?
