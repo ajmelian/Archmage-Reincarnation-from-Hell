@@ -1,16 +1,19 @@
-# v1.25.0 — Rendimiento & Caching
+
+
+# v1.26.1 — Conexión de pérdidas NP con Counters y Damage Protection
 
 ## Añadido
-- **Migración 034**: índices en tablas críticas (`market_*`, `auctions*`, `alliances*`, `audit_log`, `mod_*`, `inventory`, `economy_history`, `users`, `realms`).
-- **Config** `cache.php`: driver (file|apcu|redis), ruta/namespace y **TTLs** por módulo.
-- **Librerías**:
-  - `Caching`: abstracción de caché con **file**, **APCu** o **Redis** y limpieza por prefijo (Redis) / namespace (file).
-  - `RateLimiter`: ventanas fijas por IP y scope.
-- **Controladores**: Output cache selectivo en `Market::index` (60s), `Auctions::index` (60s), `Alliances::index` (120s).
-- **API v1**: en `export()` añadidos **rate-limit** (60 req/min por IP) y cabeceras **ETag** + `Cache-Control: public, max-age=30`.
-- **CLI** `Cachecli`: `purge <prefix>`, `warm_all` (placeholders).
+- **Config** `game.php`: `protections.damage_protection_hours = 12` (por defecto).
+- **Librería** `BattleResults`: `applyAndLog(battleId, attId, defId, attNpLoss, defNpLoss)` registra el daño bidireccional en `pvp_damage`, recalcula pérdidas 24h y otorga **Damage Protection** automáticamente cuando corresponde. Además devuelve si ahora hay **counter** disponible en ambos sentidos.
+- **ProtectionService**: helpers `totalDamage24hReceived()` y `damageLostPercent24h()`.
+- **Battle**: endpoint `POST /battle/apply_result` para consumir resultados de batalla y aplicar/registrar efectos.
+
+## Uso rápido
+```bash
+curl -X POST http://localhost/index.php/battle/apply_result   -d 'battle_id=123' -d 'attacker_realm_id=10' -d 'defender_realm_id=42'   -d 'attacker_np_loss=1200' -d 'defender_np_loss=3400'
+```
+→ Registra la batalla, recalcula ventana 24h y activa **Damage Protection** si supera el umbral.
 
 ## Notas
-- Para purgado fino de vistas de salida usa TTLs cortos; para datos, usa `Caching::deleteByPrefix()` (pleno con Redis).
-- Requiere permisos de escritura en `application/cache/archmage` (driver file).
-- Determinista y sin IA.
+- El porcentaje de pérdida en 24h se aproxima como `daño_24h / (NP_actual + daño_24h)`.
+- Ajusta `damage_threshold_percent_24h` y `damage_protection_hours` en `game.php` según tu servidor.
