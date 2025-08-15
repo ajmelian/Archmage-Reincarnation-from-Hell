@@ -44,3 +44,17 @@ class Battle extends MY_Controller {
         $this->output->set_content_type('application/json')->set_output(json_encode(['atk'=>$atkOrd,'def'=>$defOrd,'pairs'=>$pairs]));
     }
 }
+
+
+    public function prebattle() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $payload = json_decode($this->input->raw_input_stream, true) ?: [];
+        $result = $this->prebattleservice->resolve($payload);
+        // Computar loot modifier si el cliente provee NP y flag counter
+        $attNP = (int)($payload['attacker']['np'] ?? 0);
+        $defNP = (int)($payload['defender']['np'] ?? 0);
+        $isCounter = (bool)($payload['is_counter'] ?? false);
+        $lootMod = $this->battlepolicy->lootModifier($attNP, $defNP, $isCounter);
+        $result['loot_modifier'] = $lootMod;
+        $this->output->set_content_type('application/json')->set_output(json_encode($result));
+    }

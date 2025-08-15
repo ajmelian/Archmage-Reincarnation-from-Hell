@@ -17,3 +17,20 @@ curl -X POST http://localhost/index.php/battle/apply_result   -d 'battle_id=123'
 ## Notas
 - El porcentaje de pérdida en 24h se aproxima como `daño_24h / (NP_actual + daño_24h)`.
 - Ajusta `damage_threshold_percent_24h` y `damage_protection_hours` en `game.php` según tu servidor.
+
+
+# v1.27.0 — Pre-battle: resistencias + ítems; botín=0 en counters >2× NP
+
+## Añadido
+- **Config** `game.php`: bloque `prebattle` con `barrier_max=0.75` y lista de colores.
+- **DeterministicRNG**: HMAC-SHA256 CTR para tiradas reproducibles por batalla.
+- **PreBattleService::resolve()**: cadena **Barrier → Color** para hechizos, y **Barrier** para ítems (plain). Devuelve probabilidades, tiradas y si aplican.
+- **BattlePolicy::lootModifier()**: si es **counter** y `NP_atacante / NP_defensor > 2.0` → **botín=0**.
+- **Battle::prebattle (POST)**: endpoint que resuelve pre-batalla y devuelve `loot_modifier`.
+- **CLI** `Mechanicscli::prebattle_demo`.
+
+## Uso rápido
+```bash
+php public/index.php mechanicscli prebattle_demo
+curl -X POST http://localhost/index.php/battle/prebattle -d '{...json...}'
+```

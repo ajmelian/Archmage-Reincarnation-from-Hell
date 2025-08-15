@@ -1,6 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class BattlePolicy {
+    
     public function __construct() {
         $this->CI =& get_instance();
         $this->CI->load->database();
@@ -23,3 +24,13 @@ class BattlePolicy {
         return [empty($reason), $ratio, $reason];
     }
 }
+
+
+    public function lootModifier(int $attackerNP, int $defenderNP, bool $isCounter): float {
+        $cfg = $this->CI->config->item('game')['combat'] ?? [];
+        if ($isCounter) {
+            $limit = (float)($cfg['counter_loot_if_ratio_over'] ?? 2.0);
+            if ($defenderNP > 0 && ($attackerNP / $defenderNP) > $limit) return 0.0;
+        }
+        return 1.0;
+    }

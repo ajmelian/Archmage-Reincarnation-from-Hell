@@ -22,3 +22,14 @@ $config['game']['protections'] = [
     'pillage_max_24h' => 10,
     'volcano_max_24h' => 10,
 ];
+
+
+$config['game']['prebattle'] = [
+    // Límite máximo efectivo de barrera (75%)
+    'barrier_max' => 0.75,
+    // Resistencias por color por defecto (se pueden sobrescribir por reino)
+    'colors' => ['red','blue','green','white','black'],
+    // Si un ítem no tiene color: solo aplica barrera
+    // Probabilidad base si no se define en el hechizo/ítem
+    'default_spell_base_success' => 1.0,
+];
