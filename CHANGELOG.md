@@ -1,5 +1,3 @@
-
-
 # v1.30.0 — Backoffice de contenidos + Importador ODS/CSV
 
 ## Añadido
@@ -23,3 +21,21 @@
 ## Notas
 - Añade más paquetes (market, auctions, alliances, security, backups…) siguiendo el mismo patrón.
 - Las vistas deben usar `lang('…')` o `langx('…')` para cobertura completa.
+
+
+# v1.32.0 — Email & recuperación de cuenta
+
+## Añadido
+- **Migración 038**: `password_resets` y `email_verifications`.
+- **Config** `email.php` con SMTP/From/Base URL.
+- **EmailService**: envío de `sendPasswordReset()` y `sendEmailVerification()`.
+- **Auth**:
+  - `request_reset` (GET/POST) → solicita token y envía correo.
+  - `reset/{token}` (GET) y `reset_submit` (POST) → establece nueva contraseña (BCRYPT).
+  - `email/verify/{token}` → marca email verificado.
+- **Vistas**: formularios de recuperación y plantillas de email.
+- **Rutas** actualizadas.
+
+## Notas
+- Si tu tabla `users` usa otra columna de contraseña, se intenta `password_hash` y si no, `password`.
+- Configura `application/config/email.php` con tus credenciales SMTP.

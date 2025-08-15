@@ -1,72 +1,74 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Auth extends CI_Controller {
-    public function __construct(){ parent::__construct(); $this->load->library(['Passwords','TwoFA']); $this->load->database(); }
+class Auth extends MY_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->database();
-        $this->load->helper(['url','form']);
-        $this->load->library(['SecurityService']);
+        $this->load->helper(['url','form','security']);
+        $this->load->library(['EmailService','session']);
     }
 
-    public function login() {
-        if ($this->input->method(TRUE)==='GET') { $this->load->view('auth/login'); return; }
-        $email = (string)$this->input->post('email', TRUE);
-        $pass  = (string)$this->input->post('password', TRUE);
-        $ip = $this->input->ip_address();
-        try { $this->securityservice->rateCheckLogin($email, $ip); } catch (Throwable $e) {
-            $this->session->set_flashdata('err','Rate limited'); redirect('auth/login'); return;
-        }
-        $u = $this->db->get_where('users',['email'=>$email])->row_array();
-        if (!$u) { $this->session->set_flashdata('err','Credenciales inválidas'); redirect('auth/login'); return; }
-        if ($this->securityservice->isLocked($u)) { $this->session->set_flashdata('err','Cuenta bloqueada temporalmente'); redirect('auth/login'); return; }
-        if (!password_verify($pass, $u['password_hash'])) {
-            $this->securityservice->handleFailedLogin($u);
-            $this->session->set_flashdata('err','Credenciales inválidas'); redirect('auth/login'); return;
-        }
-        // reset attempts
-        $this->db->update('users',['login_attempts'=>0,'locked_until'=>null],['id'=>$u['id']]);
-        $this->session->sess_regenerate(TRUE);
-        $this->session->set_userdata('userId', (int)$u['id']);
-        if ((int)($u['totp_enabled'] ?? 0) === 1) {
-            $this->session->set_userdata('need2fa', 1);
-            redirect('auth/second_factor');
-        } else {
-            redirect('home');
-        }
+    private function hasColumn($table, $column): bool {
+        $q = $this->db->query('SHOW COLUMNS FROM `'.$table.'` LIKE '.$this->db->escape($column));
+        return $q->row_array() ? true : false;
     }
 
-    public function second_factor() {
-        $uid = (int)$this->session->userdata('userId');
-        $need = (int)$this->session->userdata('need2fa');
-        if (!$uid || !$need) redirect('auth/login');
-        if ($this->input->method(TRUE)==='GET') { $this->load->view('auth/second_factor'); return; }
-        $code = (string)$this->input->post('code', TRUE);
-        $u = $this->db->get_where('users',['id'=>$uid])->row_array();
-        $secret = $u['totp_secret'] ?? '';
-        $this->load->library('TwoFactor');
-        $ok = $this->twofactor->verify($secret, $code, 1);
-        if (!$ok) {
-            // check backup codes
-            $b = json_decode($u['backup_codes'] ?? '[]', true) ?: [];
-            $used = false;
-            foreach ($b as $k=>$val) {
-                if (hash_equals($val, $code)) { $used = true; unset($b[$k]); break; }
-            }
-            if ($used) {
-                $this->db->update('users',['backup_codes'=>json_encode(array_values($b)),'last_2fa_at'=>time()],['id'=>$uid]);
-            } else {
-                $this->session->set_flashdata('err','Código inválido'); redirect('auth/second_factor'); return;
-            }
-        } else {
-            $this->db->update('users',['last_2fa_at'=>time()],['id'=>$uid]);
+    public function request_reset() {
+        if ($this->input->method(TRUE) !== 'POST') {
+            $this->load->view('auth/reset_request');
+            return;
         }
-        $this->session->unset_userdata('need2fa');
-        redirect('home');
+        $email = strtolower(trim($this->input->post('email', TRUE)));
+        if (!$email) { $this->session->set_flashdata('err','Email requerido'); redirect('auth/request_reset'); }
+        // Buscar usuario
+        $user = $this->db->get_where('users', ['email'=>$email])->row_array();
+        $userId = $user['id'] ?? null;
+        $token = bin2hex(random_bytes(32));
+        $this->db->insert('password_resets',[
+            'user_id'=>$userId,'email'=>$email,'token'=>$token,
+            'ip'=>$this->input->ip_address(),'ua'=>substr($this->input->user_agent(),0,250),
+            'created_at'=>time()
+        ]);
+        $this->emailservice->sendPasswordReset($email, $token);
+        $this->load->view('auth/reset_request', ['sent'=>true]);
     }
 
-    public function logout() {
-        $this->session->sess_destroy();
-        redirect('auth/login');
+    public function reset($token=null) {
+        if (!$token) show_404();
+        $row = $this->db->get_where('password_resets',['token'=>$token,'used_at'=>NULL])->row_array();
+        if (!$row) show_error('Token inválido o usado.');
+        $this->load->view('auth/reset_form', ['token'=>$token]);
+    }
+
+    public function reset_submit() {
+        if ($this->input->method(TRUE) !== 'POST') show_404();
+        $token = $this->input->post('token', TRUE);
+        $pass1 = $this->input->post('password', TRUE);
+        $pass2 = $this->input->post('password2', TRUE);
+        if (!$token || !$pass1 || $pass1 !== $pass2) { $this->session->set_flashdata('err','Datos inválidos'); redirect('auth/reset/'.$token); }
+        $row = $this->db->get_where('password_resets',['token'=>$token,'used_at'=>NULL])->row_array();
+        if (!$row) show_error('Token inválido.');
+        // Actualiza password si existe columna users.password_hash
+        $user = $this->db->get_where('users',['email'=>$row['email']])->row_array();
+        if (!$user) show_error('Usuario no encontrado para ese email.');
+        $hash = password_hash($pass1, PASSWORD_BCRYPT);
+        if ($this->hasColumn('users','password_hash')) {
+            $this->db->update('users',['password_hash'=>$hash],['id'=>$user['id']]);
+        } else if ($this->hasColumn('users','password')) {
+            $this->db->update('users',['password'=>$hash],['id'=>$user['id']]);
+        }
+        $this->db->update('password_resets',['used_at'=>time()],['id'=>$row['id']]);
+        $this->load->view('auth/reset_success');
+    }
+
+    public function verify($token=null) {
+        if (!$token) show_404();
+        $row = $this->db->get_where('email_verifications',['token'=>$token,'verified_at'=>NULL])->row_array();
+        if (!$row) show_error('Token inválido.');
+        $this->db->update('email_verifications',['verified_at'=>time()],['id'=>$row['id']]);
+        if ($this->hasColumn('users','email_verified_at')) {
+            $this->db->update('users',['email_verified_at'=>time()],['id'=>$row['user_id']]);
+        }
+        $this->load->view('auth/verify_success');
     }
 }
