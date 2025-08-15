@@ -1,5 +1,5 @@
 <div class="container mt-4">
-  <h2><?php echo isset($row)?'Editar':'Crear'; ?> en <?php echo ucfirst($table); ?></h2>
+  <h2><?php echo isset($row)?'<?php echo lang('action.edit'); ?>':'<?php echo lang('action.create'); ?>'; ?> en <?php echo ucfirst($table); ?></h2>
   <form method="post">
     <?php
       $fields = $row ? array_keys($row) : ['code','name','type','attack_types','power','res_melee','res_ranged','res_flying','color_id','rarity_id','base_success','mana_cost','effect','class','bonus'];
@@ -11,7 +11,7 @@
         <input class="form-control" name="<?php echo htmlentities($f); ?>" value="<?php echo htmlentities($row[$f] ?? ''); ?>" />
       </div>
     <?php endforeach; ?>
-    <button class="btn btn-primary">Guardar</button>
-    <a class="btn btn-secondary" href="<?php echo site_url('admin/content/list/'.$table); ?>">Cancelar</a>
+    <button class="btn btn-primary"><?php echo lang('action.save'); ?></button>
+    <a class="btn btn-secondary" href="<?php echo site_url('admin/content/list/'.$table); ?>"><?php echo lang('action.cancel'); ?></a>
   </form>
 </div>

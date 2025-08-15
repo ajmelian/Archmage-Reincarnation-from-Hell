@@ -7,6 +7,7 @@ class AdminContent extends MY_Controller {
         parent::__construct();
         $this->load->database();
         $this->load->library(['ContentService','Importer']);
+        $this->lang->load('content');
         $this->load->helper(['url','form']);
     }
 

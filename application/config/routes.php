@@ -6,3 +6,6 @@ $route['admin/content/edit/(:any)'] = 'admincontent/edit/$1';
 $route['admin/content/edit/(:any)/(:num)'] = 'admincontent/edit/$1/$2';
 $route['admin/content/delete/(:any)/(:num)'] = 'admincontent/delete/$1/$2';
 $route['admin/content/import'] = 'admincontent/import';
+
+// S42 Language switcher
+$route['lang/set/(:any)'] = 'language/set/$1';
