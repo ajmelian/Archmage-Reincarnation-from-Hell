@@ -3,6 +3,7 @@
 class Auth extends MY_Controller {
     public function __construct() {
         parent::__construct();
+        $this->lang->load('auth');
         $this->load->database();
         $this->load->helper(['url','form','security']);
         $this->load->library(['EmailService','session']);

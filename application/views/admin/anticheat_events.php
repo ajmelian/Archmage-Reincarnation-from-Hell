@@ -1,5 +1,5 @@
 <div class="container mt-4">
-  <h2>Eventos Anti-cheat</h2>
+  <h2><?php echo lang('ac.events.title'); ?></h2>
   <table class="table table-striped">
     <thead><tr><th>ID</th><th>User</th><th>Realm</th><th>Tipo</th><th>Sev</th><th>Meta</th><th>Fecha</th></tr></thead>
     <tbody>

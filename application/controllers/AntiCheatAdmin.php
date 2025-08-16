@@ -3,6 +3,7 @@
 class AntiCheatAdmin extends MY_Controller {
     public function __construct() {
         parent::__construct();
+        $this->lang->load('anticheat');
         $this->load->database();
         $this->load->library('AntiCheatService');
         $this->load->helper(['url','form']);

@@ -131,3 +131,16 @@
 - **Home**: controlador y vista básicos.
 - **Vistas** existentes envueltas con layout (S41/S45/S46/S49), sin tocar lógica de controladores.
 - **Ruta** `default_controller = home` si no existía.
+
+
+# v1.40.0 — i18n completo en vistas
+
+## Añadido
+- Paquetes EN/ES: `ui`, `auth`, `notifications`, `observability`, `privacy`, `anticheat`, `home`.
+- `MY_Controller` carga `ui` además de `common`.
+- Controladores cargan su paquete: Auth, Notifications, Privacy, ObservabilityAdmin, AntiCheatAdmin, Home.
+- Vistas actualizadas para usar `lang()` en **todas** las secciones añadidas en S41–S50.
+- Emails: sujetos y cuerpos via `auth_lang` (plantillas actualizadas).
+
+## Notas
+- Añade claves adicionales según amplíes módulos (market, auctions, alliances). Ejecuta `Langcli::audit` para detectar faltantes.

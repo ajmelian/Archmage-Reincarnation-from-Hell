@@ -17,10 +17,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarsExample">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('admin/content'); ?>">Contenido</a></li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('admin/observability'); ?>">Observabilidad</a></li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('notifications'); ?>">Notificaciones <span id="notif-badge" class="badge bg-primary badge-notif">0</span></a></li>
-        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('privacy'); ?>">Privacidad</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('admin/content'); ?>"><?php echo lang('ui.nav.content'); ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('admin/observability'); ?>"><?php echo lang('ui.nav.observability'); ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('notifications'); ?>"><?php echo lang('ui.nav.notifications'); ?> <span id="notif-badge" class="badge bg-primary badge-notif">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="<?php echo site_url('privacy'); ?>"><?php echo lang('ui.nav.privacy'); ?></a></li>
       </ul>
       <div class="d-flex align-items-center gap-2">
         <a class="btn btn-sm btn-outline-secondary" href="<?php echo site_url('lang/set/spanish'); ?>">ES</a>

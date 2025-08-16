@@ -3,6 +3,7 @@
 class ObservabilityAdmin extends MY_Controller {
     public function __construct() {
         parent::__construct();
+        $this->lang->load('observability');
         $this->load->database();
         $this->load->library(['MetricsService','AuditService']);
         $this->load->helper(['url']);

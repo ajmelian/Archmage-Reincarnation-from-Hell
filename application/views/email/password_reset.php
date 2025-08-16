@@ -1,4 +1,4 @@
-<p>Has solicitado restablecer tu contraseña.</p>
-<p>Pulsa en el siguiente enlace para continuar:</p>
+<p><?php echo lang('auth.email.reset_intro'); ?></p>
+<p><?php echo lang('auth.email.reset_cta'); ?></p>
 <p><a href="<?php echo htmlentities($link); ?>"><?php echo htmlentities($link); ?></a></p>
-<p>Si no has sido tú, ignora este correo.</p>
+<p><?php echo lang('auth.email.ignore'); ?></p>

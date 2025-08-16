@@ -1,11 +1,11 @@
 <?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
-  <h2>Observabilidad — Panel</h2>
+  <h2><?php echo lang('obs.panel'); ?></h2>
   <div class="row">
     <div class="col-md-6">
-      <h4>Top métricas (hoy)</h4>
+      <h4><?php echo lang('obs.top_today'); ?></h4>
       <table class="table table-sm table-striped">
-        <thead><tr><th>Métrica</th><th>Día</th><th>Valor</th></tr></thead>
+        <thead><tr><th><?php echo lang('obs.metric'); ?></th><th><?php echo lang('obs.day'); ?></th><th><?php echo lang('obs.value'); ?></th></tr></thead>
         <tbody>
           <?php foreach ($top as $t): ?>
             <tr><td><?php echo htmlentities($t['metric_key']); ?></td><td><?php echo (int)$t['day']; ?></td><td><?php echo (int)$t['value']; ?></td></tr>
@@ -14,7 +14,7 @@
       </table>
     </div>
     <div class="col-md-6">
-      <h4>Auditoría reciente</h4>
+      <h4><?php echo lang('obs.recent_audit'); ?></h4>
       <table class="table table-sm table-striped">
         <thead><tr><th>Fecha</th><th>User</th><th>Realm</th><th>Acción</th><th>Meta</th><th>IP</th></tr></thead>
         <tbody>
@@ -35,7 +35,7 @@
   <div class="mt-3">
     <form class="row g-2" onsubmit="event.preventDefault(); fetchSeries();">
       <div class="col"><input class="form-control" id="metricKey" placeholder="http.Battle.finalize"></div>
-      <div class="col"><button class="btn btn-primary" onclick="fetchSeries()">Ver serie (JSON)</button></div>
+      <div class="col"><button class="btn btn-primary" onclick="fetchSeries()"><?php echo lang('obs.view_series'); ?></button></div>
     </form>
     <pre id="seriesBox" class="mt-3"></pre>
   </div>

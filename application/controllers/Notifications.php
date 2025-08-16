@@ -3,6 +3,7 @@
 class Notifications extends MY_Controller {
     public function __construct(){
         parent::__construct();
+        $this->lang->load('notifications');
         $this->load->database();
         $this->load->library(['NotificationService','session']);
         $this->load->helper(['url']);

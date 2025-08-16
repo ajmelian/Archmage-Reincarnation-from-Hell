@@ -5,6 +5,7 @@ class EmailService {
         $this->CI =& get_instance();
         $this->CI->load->library('email');
         $this->CI->load->config('email');
+        $this->CI->lang->load('auth');
         $this->email->initialize($this->CI->config->item('email'));
     }
 
@@ -19,7 +20,7 @@ class EmailService {
         $link = rtrim($base,'/').'/index.php/auth/reset/'.$token;
         $this->email->from($fromEmail, $fromName);
         $this->email->to($toEmail);
-        $this->email->subject('Password reset');
+        $this->email->subject($this->CI->lang->line('auth.email.reset_subject') ?: 'Password reset');
         $body = $this->CI->load->view('email/password_reset', ['link'=>$link], TRUE);
         $this->email->message($body);
         return $this->email->send();
@@ -31,7 +32,7 @@ class EmailService {
         $link = rtrim($base,'/').'/index.php/email/verify/'.$token;
         $this->email->from($fromEmail, $fromName);
         $this->email->to($toEmail);
-        $this->email->subject('Verify your email');
+        $this->email->subject($this->CI->lang->line('auth.email.verify_subject') ?: 'Verify your email');
         $body = $this->CI->load->view('email/verify_email', ['link'=>$link], TRUE);
         $this->email->message($body);
         return $this->email->send();

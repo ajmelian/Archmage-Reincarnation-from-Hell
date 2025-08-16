@@ -3,6 +3,7 @@
 class Privacy extends MY_Controller {
     public function __construct(){
         parent::__construct();
+        $this->lang->load('privacy');
         $this->load->database();
         $this->load->library(['GdprService','session']);
         $this->load->helper(['url']);

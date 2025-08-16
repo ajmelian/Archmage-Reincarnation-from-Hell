@@ -10,5 +10,6 @@ class MY_Controller extends CI_Controller {
         $this->config->set_item('language', $lang);
         // Carga paquetes base
         $this->lang->load('common', $lang);
+        $this->lang->load('ui', $lang);
     }
 }
