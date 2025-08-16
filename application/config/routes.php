@@ -32,3 +32,10 @@ $route['notifications/list.json'] = 'notifications/list_json';
 $route['notifications/unread_badge.json'] = 'notifications/unread_badge';
 $route['notifications/mark_read/(:num)'] = 'notifications/mark_read/$1';
 $route['notifications/mark_all'] = 'notifications/mark_all';
+
+// S49 Privacy/GDPR
+$route['privacy'] = 'privacy/index';
+$route['terms'] = 'privacy/terms';
+$route['privacy/export'] = 'privacy/export';
+$route['privacy/delete'] = 'privacy/delete_request';
+$route['privacy/delete_confirm'] = 'privacy/delete_confirm';

@@ -107,3 +107,16 @@
 ## Notas
 - Los golden dependen de que `/battle/finalize` esté operativo (motor de combate listo).
 - Ajusta fixtures a tu *content pack* real (NP, stacks, resists).
+
+
+# v1.38.0 — Privacidad/GDPR
+
+## Añadido
+- **GdprService**: `exportUserData(userId)` (users, realms, notifications, eventos anti-cheat, sanciones, batallas relacionadas) y `anonymizeUser(userId)`.
+- **Privacy controller**: `/privacy`, `/terms`, **exportación JSON** (`/privacy/export`) y **borrado** por anonimización (`/privacy/delete` → `/privacy/delete_confirm`).
+- **Vistas**: páginas estáticas de Política de Privacidad y Términos; flujo de eliminación.
+- **Rutas** actualizadas.
+
+## Notas
+- La anonimización conserva el historial de juego sin PII (desvincula reinos y enmascara email).
+- Integra `AuditService::log()` en operaciones sensibles si quieres traza adicional.
