@@ -15,3 +15,9 @@ $route['auth/request_reset'] = 'auth/request_reset';
 $route['auth/reset/(:any)'] = 'auth/reset/$1';
 $route['auth/reset_submit'] = 'auth/reset_submit';
 $route['email/verify/(:any)'] = 'auth/verify/$1';
+
+// S44 Anti-cheat admin
+$route['admin/anticheat/events'] = 'anticheatadmin/events';
+$route['admin/anticheat/sanctions'] = 'anticheatadmin/sanctions';
+$route['admin/anticheat/impose'] = 'anticheatadmin/impose';
+$route['admin/anticheat/revoke/(:num)'] = 'anticheatadmin/revoke/$1';

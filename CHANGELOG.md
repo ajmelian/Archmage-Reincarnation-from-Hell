@@ -39,3 +39,22 @@
 ## Notas
 - Si tu tabla `users` usa otra columna de contraseña, se intenta `password_hash` y si no, `password`.
 - Configura `application/config/email.php` con tus credenciales SMTP.
+
+
+# v1.33.0 — Anti-trampas (reglas) + sanciones + hook de sesión
+
+## Añadido
+- **Migración 039**: `session_log`, `anticheat_events`, `sanctions`, `transfers_log`.
+- **Config** `anticheat.php`: umbrales de multi-cuenta por IP y límites de transferencias por pareja/24h.
+- **AntiCheatService**:
+  - `logSession()` + `detectMultiAccount()` (evento `multi_ip` cuando supera el umbral).
+  - `logTransfer()` + `checkTransferLimits()` (evento `transfer_limit` por exceso).
+  - `assertAllowed(user, action)` para bloquear acciones (p. ej., `mute_market`).
+  - `imposeSanction()` / `revokeSanction()`.
+- **Hook** `AntiCheatHook` en `pre_controller` para registrar IP/UA de usuarios logueados (requiere `config['enable_hooks']=TRUE`).
+- **Admin** `AntiCheatAdmin`: panel de eventos y sanciones, con imposición/revocación.
+- **Rutas**: `/admin/anticheat/*`.
+
+## Notas
+- Integra `assertAllowed()` en puntos sensibles: mercado, subastas, alianzas, chat.
+- Llama a `logTransfer()` desde los módulos de comercio para activar límites automáticos.
