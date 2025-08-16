@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-archmage}
+      MYSQL_USER: ${DB_USER:-archmage}
+      MYSQL_PASSWORD: ${DB_PASS:-archmage}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root}
+    ports: ["3306:3306"]
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./scripts/seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  php:
+    build: ./docker/php
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-archmage}
+      DB_USER: ${DB_USER:-archmage}
+      DB_PASS: ${DB_PASS:-archmage}
+      REDIS_HOST: redis
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: nginx:1.25-alpine
+    ports: ["8080:80"]
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+
+volumes:
+  dbdata:

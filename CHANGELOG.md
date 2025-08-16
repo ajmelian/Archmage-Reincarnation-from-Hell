@@ -84,3 +84,13 @@
 - **Vistas**: `notifications/center.php` (Bootstrap).
 - **Integración**: si existe `BattleService::finalize`, se inyectan notificaciones a atacante/defensor.
 - **Rutas**: `/notifications*`.
+
+
+# v1.36.0 — DevOps & despliegue (Docker/Compose + seeds + CI)
+
+## Añadido
+- **Docker/Compose**: Nginx + PHP-FPM 8.2 + MySQL 8 + Redis, con `docker/docker-compose.yml` y `Dockerfile` PHP.
+- **Nginx**: `default.conf` para front controller `index.php`.
+- **.env.example** variables básicas.
+- **Scripts**: `scripts/seed.sql` (usuarios/realms mínimos), `backup_db.sh`, `wait-for-db.sh`.
+- **CI**: workflow GitHub Actions para **lint** y Composer install si existe.
