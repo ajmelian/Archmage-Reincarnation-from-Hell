@@ -1,0 +1,39 @@
+{
+  "name": "regular_basic_win",
+  "request": {
+    "type": "regular",
+    "is_counter": false,
+    "attacker": {
+      "realm_id": 1,
+      "np": 12000,
+      "stacks": [
+        {
+          "id": 1,
+          "type": "melee",
+          "attack_types": [
+            "melee"
+          ],
+          "power": 100
+        }
+      ]
+    },
+    "defender": {
+      "realm_id": 2,
+      "np": 10000,
+      "stacks": [
+        {
+          "id": 2,
+          "type": "melee",
+          "attack_types": [
+            "melee"
+          ],
+          "power": 80
+        }
+      ]
+    }
+  },
+  "expect": {
+    "attacker_win": true,
+    "has_loot_fields": true
+  }
+}

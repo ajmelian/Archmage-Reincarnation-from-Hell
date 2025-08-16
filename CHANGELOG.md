@@ -94,3 +94,16 @@
 - **.env.example** variables básicas.
 - **Scripts**: `scripts/seed.sql` (usuarios/realms mínimos), `backup_db.sh`, `wait-for-db.sh`.
 - **CI**: workflow GitHub Actions para **lint** y Composer install si existe.
+
+
+# v1.37.0 — QA: Golden tests & E2E
+
+## Añadido
+- **Golden tests (HTTP)**: fixtures JSON y `tests/golden/run_http.php` que llama a `/battle/finalize` y verifica resultados.
+- **PHPUnit** (smoke) con `phpunit.xml` y `SampleSmokeTest`.
+- **Cypress** scaffold opcional (`cypress.config.js`, `e2e/smoke.cy.js`).
+- **Workflow** `tests.yml` ejecuta PHPUnit y golden runner en CI.
+
+## Notas
+- Los golden dependen de que `/battle/finalize` esté operativo (motor de combate listo).
+- Ajusta fixtures a tu *content pack* real (NP, stacks, resists).
