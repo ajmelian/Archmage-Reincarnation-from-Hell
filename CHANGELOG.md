@@ -58,3 +58,18 @@
 ## Notas
 - Integra `assertAllowed()` en puntos sensibles: mercado, subastas, alianzas, chat.
 - Llama a `logTransfer()` desde los módulos de comercio para activar límites automáticos.
+
+
+# v1.34.0 — Observabilidad & Auditoría
+
+## Añadido
+- **Migración 040**: `audit_log`, `metrics_counters`, `app_events`.
+- **AuditService**: `log(action, userId, realmId, meta)` y `recent()`.
+- **MetricsService**: `inc(key, amount)` y series/Top (día).
+- **Hook** `MetricsHook` (`post_controller`): cuenta requests por controlador/método (`http.{Controller}.{method}`).
+- **Admin** `ObservabilityAdmin` + vista `observability_dashboard` con Top de métricas del día y auditoría reciente.
+- **Rutas**: `/admin/observability`, `/admin/observability/metrics_json`.
+
+## Notas
+- Usa `AuditService::log(...)` en acciones sensibles (login, comercio, alianzas, batallas).
+- Las métricas se guardan por día (`YYYYMMDD`) para rapidez y bajo costo.

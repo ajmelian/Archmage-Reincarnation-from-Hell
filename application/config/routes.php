@@ -21,3 +21,7 @@ $route['admin/anticheat/events'] = 'anticheatadmin/events';
 $route['admin/anticheat/sanctions'] = 'anticheatadmin/sanctions';
 $route['admin/anticheat/impose'] = 'anticheatadmin/impose';
 $route['admin/anticheat/revoke/(:num)'] = 'anticheatadmin/revoke/$1';
+
+// S45 Observability
+$route['admin/observability'] = 'observabilityadmin/dashboard';
+$route['admin/observability/metrics_json'] = 'observabilityadmin/metrics_json';

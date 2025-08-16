@@ -7,3 +7,12 @@ $hook['pre_controller'][] = [
     'filepath' => 'hooks',
     'params'   => []
 ];
+
+
+$hook['post_controller'][] = [
+    'class'    => 'MetricsHook',
+    'function' => 'count_request',
+    'filename' => 'MetricsHook.php',
+    'filepath' => 'hooks',
+    'params'   => []
+];
