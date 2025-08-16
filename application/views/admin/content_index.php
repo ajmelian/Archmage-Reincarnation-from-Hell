@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h1><?php echo lang('content.title'); ?></h1>
   <ul>
@@ -7,3 +8,5 @@
   </ul>
   <p><a class="btn btn-primary" href="<?php echo site_url('admin/content/import'); ?>"><?php echo lang('content.import'); ?></a></p>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

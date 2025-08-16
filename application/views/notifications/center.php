@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2>Notificaciones</h2>
   <div class="mb-2">
@@ -21,3 +22,5 @@
   <?php endforeach; ?>
   </ul>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

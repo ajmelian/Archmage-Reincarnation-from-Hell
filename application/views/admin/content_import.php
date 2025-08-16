@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2><?php echo lang('content.import'); ?></h2>
   <form method="post" enctype="multipart/form-data">
@@ -17,3 +18,5 @@
     <a class="btn btn-secondary" href="<?php echo site_url('admin/content'); ?>"><?php echo lang('content.back'); ?></a>
   </form>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

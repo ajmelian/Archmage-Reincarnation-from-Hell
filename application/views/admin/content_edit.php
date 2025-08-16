@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2><?php echo isset($row)?'<?php echo lang('action.edit'); ?>':'<?php echo lang('action.create'); ?>'; ?> en <?php echo ucfirst($table); ?></h2>
   <form method="post">
@@ -15,3 +16,5 @@
     <a class="btn btn-secondary" href="<?php echo site_url('admin/content/list/'.$table); ?>"><?php echo lang('action.cancel'); ?></a>
   </form>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

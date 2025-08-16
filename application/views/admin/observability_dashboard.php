@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2>Observabilidad — Panel</h2>
   <div class="row">
@@ -46,3 +47,5 @@ function fetchSeries(){
     .then(r=>r.json()).then(d=>{ document.getElementById('seriesBox').textContent = JSON.stringify(d,null,2); });
 }
 </script>
+
+<?php $this->load->view('_partials/footer'); ?>

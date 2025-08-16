@@ -120,3 +120,14 @@
 ## Notas
 - La anonimización conserva el historial de juego sin PII (desvincula reinos y enmascara email).
 - Integra `AuditService::log()` en operaciones sensibles si quieres traza adicional.
+
+
+# v1.39.0 — Pulido UX/UI
+
+## Añadido
+- **Layout** con parciales `header`, `alerts`, `footer` (Bootstrap 5) y **modo oscuro** con `localStorage`.
+- **Navbar** con accesos a Contenido, Observabilidad, Notificaciones y Privacidad + **badge** de no leídas.
+- **Assets**: `assets/css/app.css`, `assets/js/app.js` (toggle dark y polling del badge).
+- **Home**: controlador y vista básicos.
+- **Vistas** existentes envueltas con layout (S41/S45/S46/S49), sin tocar lógica de controladores.
+- **Ruta** `default_controller = home` si no existía.

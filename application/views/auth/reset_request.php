@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2>Recuperar contraseña</h2>
   <?php if (!empty($sent)): ?>
@@ -11,3 +12,5 @@
     <button class="btn btn-primary">Enviar enlace</button>
   </form>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

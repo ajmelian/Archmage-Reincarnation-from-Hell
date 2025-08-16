@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2>Política de Privacidad</h2>
   <p>Esta versión de Archmage recopila datos mínimos para operar el juego: cuenta, reinos vinculados y actividad necesaria para auditoría y seguridad.</p>
@@ -7,3 +8,5 @@
     <li>Mantenemos registros de seguridad y juego sin PII tras el borrado.</li>
   </ul>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

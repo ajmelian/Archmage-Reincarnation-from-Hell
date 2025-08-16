@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2>Introduce nueva contraseña</h2>
   <form method="post" action="<?php echo site_url('auth/reset_submit'); ?>">
@@ -13,3 +14,5 @@
     <button class="btn btn-primary">Cambiar</button>
   </form>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

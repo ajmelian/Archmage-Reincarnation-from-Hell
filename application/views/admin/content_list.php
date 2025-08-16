@@ -1,3 +1,4 @@
+<?php $this->load->view('_partials/header'); ?>
 <div class="container mt-4">
   <h2><?php echo ucfirst($table); ?> <a class="btn btn-sm btn-success" href="<?php echo site_url('admin/content/edit/'.$table); ?>"><?php echo lang('action.create'); ?></a></h2>
   <table class="table table-striped">
@@ -22,3 +23,5 @@
     </tbody>
   </table>
 </div>
+
+<?php $this->load->view('_partials/footer'); ?>

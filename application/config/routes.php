@@ -1,4 +1,3 @@
-
 // S41 AdminContent
 $route['admin/content'] = 'admincontent/index';
 $route['admin/content/list/(:any)'] = 'admincontent/list/$1';
@@ -39,3 +38,6 @@ $route['terms'] = 'privacy/terms';
 $route['privacy/export'] = 'privacy/export';
 $route['privacy/delete'] = 'privacy/delete_request';
 $route['privacy/delete_confirm'] = 'privacy/delete_confirm';
+
+// S50 default controller
+$route['default_controller'] = 'home';
