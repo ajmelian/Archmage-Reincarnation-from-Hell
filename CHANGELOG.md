@@ -73,3 +73,14 @@
 ## Notas
 - Usa `AuditService::log(...)` en acciones sensibles (login, comercio, alianzas, batallas).
 - Las métricas se guardan por día (`YYYYMMDD`) para rapidez y bajo costo.
+
+
+# v1.35.0 — Notificaciones in‑app
+
+## Añadido
+- **Migración 041**: `notifications` (por usuario, con `read_at`).
+- **NotificationService**: enviar/listar/contar/leer notificaciones.
+- **Controlador** `Notifications`: centro de notificaciones, JSON de listado y badge de no leídas; marcar leído/todo leído.
+- **Vistas**: `notifications/center.php` (Bootstrap).
+- **Integración**: si existe `BattleService::finalize`, se inyectan notificaciones a atacante/defensor.
+- **Rutas**: `/notifications*`.

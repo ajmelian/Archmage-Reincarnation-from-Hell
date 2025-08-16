@@ -25,3 +25,10 @@ $route['admin/anticheat/revoke/(:num)'] = 'anticheatadmin/revoke/$1';
 // S45 Observability
 $route['admin/observability'] = 'observabilityadmin/dashboard';
 $route['admin/observability/metrics_json'] = 'observabilityadmin/metrics_json';
+
+// S46 Notifications
+$route['notifications'] = 'notifications/center';
+$route['notifications/list.json'] = 'notifications/list_json';
+$route['notifications/unread_badge.json'] = 'notifications/unread_badge';
+$route['notifications/mark_read/(:num)'] = 'notifications/mark_read/$1';
+$route['notifications/mark_all'] = 'notifications/mark_all';
