@@ -23,8 +23,6 @@ class BattlePolicy {
         if ($ratio > ($band['max'] ?? 2.0)) { $reason = 'above_band'; }
         return [empty($reason), $ratio, $reason];
     }
-}
-
 
     public function lootModifier(int $attackerNP, int $defenderNP, bool $isCounter): float {
         $cfg = $this->CI->config->item('game')['combat'] ?? [];
@@ -34,3 +32,4 @@ class BattlePolicy {
         }
         return 1.0;
     }
+}

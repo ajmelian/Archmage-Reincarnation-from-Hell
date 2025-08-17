@@ -43,8 +43,6 @@ class Battle extends MY_Controller {
         $pairs = $this->engine->pairing($atkOrd, $defOrd);
         $this->output->set_content_type('application/json')->set_output(json_encode(['atk'=>$atkOrd,'def'=>$defOrd,'pairs'=>$pairs]));
     }
-}
-
 
     public function prebattle() {
         if ($this->input->method(TRUE) !== 'POST') show_404();
@@ -83,3 +81,4 @@ class Battle extends MY_Controller {
         if (!$row) show_404();
         $this->output->set_content_type('application/json')->set_output($row['report'] ?: '{}');
     }
+}

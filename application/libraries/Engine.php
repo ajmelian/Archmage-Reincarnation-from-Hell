@@ -85,11 +85,11 @@ class Engine {
         if ($atkType === 'melee' && $defType === 'flying') return false;
         return true;
     }
-}
 
 
-
-    private function battle_cfg() { return $this->CI->config->item('game')['battle_phase'] ?? []; }
+    private function battle_cfg() {
+        return $this->CI->config->item('game')['battle_phase'] ?? []; 
+    }
 
     /**
      * Decide el tipo de ataque efectivo de un stack (para híbridos).
@@ -193,3 +193,4 @@ class Engine {
             'attack_types'  => $atkAttackType,
         ];
     }
+}
